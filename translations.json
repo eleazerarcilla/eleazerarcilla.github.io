@@ -1,8 +1,8 @@
 {
     "EN": {
-        "sm-journey": "A plant does not resist the wind; it bends and finds a way to keep growing.",
-        "sm-pseudo": "Team Lead | Software Engineer | <span id='sp-years'>9</span> years",
+        "sm-pseudo": "<span id='sp-years'>9</span> years of passion in Tech, People and Progress",
         "sm-translation": "View this page in:",
+        "a-buymecoffee": "Buy Eleaz a cup of Iced Coffee",
         "mark-en": "English",
         "mark-ph": "Tagalog",
         "mark-es": "Spanish",
@@ -14,10 +14,10 @@
         "p-footer": "This website is built in basic HTML + <a href='https://picocss.com/' target='_blank'>Pico CSS</a>, hosted in <a href='https://pages.github.com/' target='_blank'>GitHub Pages</a>.",
         "sm-copyright": "© 2025 Eleazer Arcilla. Currently: v1.0.0."
     },
-    "PH": {
-        "sm-journey": "Ang halaman ay hindi sumasalungat sa ihip ng hangin; bagkus, ito’y yumuyukod, hinahanap ang landas, at patuloy na yumayabong.",
-        "sm-pseudo": "Pinuno ng Pangkat | <i>Software Engineer</i> | <span id='sp-years'>9</span> na taon sa industriya",
+    "TL": {
+        "sm-pseudo": "<span id='sp-years'>9</span> na taon ng sigasig sa Karunungan, Tao, at Pagsulong",
         "sm-translation": "Ipakita ang pahinang ito sa:",
+        "a-buymecoffee": "Bilhan si Eleaz ng isang tasang kape na may yelo.",
         "mark-en": "Ingles",
         "mark-ph": "Tagalog",
         "mark-es": "Espanyol",
@@ -30,9 +30,9 @@
         "sm-copyright": "© 2025 Eleazer Arcilla. Sa ngayon ay: v1.0.0."
     },
     "ES": {
-        "sm-journey": "Una planta no resiste el viento; se dobla y encuentra una manera de seguir creciendo.",
-        "sm-pseudo": "Líder de Equipo | <i>Software Engineer</i> | <span id='sp-years'>9</span> años en la industria",
+        "sm-pseudo": "<span id='sp-years'>9</span> años de pasión por la tecnología, las personas y el progreso",
         "sm-translation": "Mostrar esta página en:",
+        "a-buymecoffee": "Compra para Eleaz una taza de café helado.",
         "mark-en": "Inglés",
         "mark-ph": "Tagalog",
         "mark-es": "Español",
