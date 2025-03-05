@@ -1,47 +1,53 @@
 {
     "EN": {
+        "title": "My name is 'Eleaz'",
         "sm-pseudo": "<span id='sp-years'>9</span> years of passion in Tech, People and Progress",
         "sm-translation": "View this page in:",
-        "a-buymecoffee": "Buy Eleaz a cup of Iced Coffee",
+        "a-buymecoffee": "Buy me a coffee",
         "mark-en": "English",
         "mark-ph": "Tagalog",
         "mark-es": "Spanish",
         "p-intro": "Software developer based in Singapore.",
         "p-exp-latest": "Currently working at <a href='https://corporate.mims.com' target='_blank'>MIMS PTE. LTD.</a> as a Team Lead for 10 software engineers, utilising Microsoft Tech stack such as C#, Azure, and Power Apps.",
         "p-exp-previous": "Previously worked as a Software Engineer at Genpact Headstrong an IT consulting company. Contributed to several key projects from ASP.NET MVC hosted in IIS up to .Net Core in AWS.",
-        "p-cv":"Take a look at my CV <a href='https://1drv.ms/b/c/0fc4d38e518b20dd/EaEO4IfFSLxChpPedVR-NhoBy9bBULelIX8NRQfFq7Lv4Q?e=tCIxu2' target='_blank'>here</a>, or read my favorite <a href='' target='_blank'>poem</a>.",
+        "p-cv":"Take a look at my CV <a href='https://1drv.ms/b/c/0fc4d38e518b20dd/EaEO4IfFSLxChpPedVR-NhoBy9bBULelIX8NRQfFq7Lv4Q?e=tCIxu2' target='_blank'>here</a>.",
         "p-contact":"Feel free to get in <a href='mailto:contact@eleazerarcilla.com' target='_blank'>touch</a>.",
         "p-footer": "This website is built in basic HTML + <a href='https://picocss.com/' target='_blank'>Pico CSS</a>, hosted in <a href='https://pages.github.com/' target='_blank'>GitHub Pages</a>.",
-        "sm-copyright": "© 2025 Eleazer Arcilla. Currently: v1.0.0."
+        "sm-copyright": "© 2025 Eleazer Arcilla. Currently: v1.0.0.",
+        "sm-read-a-poem": "Read a poem"
     },
     "TL": {
+        "title": "Ang ngalan ko ay 'Eleaz'",
         "sm-pseudo": "<span id='sp-years'>9</span> na taon ng sigasig sa Karunungan, Tao, at Pagsulong",
         "sm-translation": "Ipakita ang pahinang ito sa:",
-        "a-buymecoffee": "Bilhan si Eleaz ng isang tasang kape na may yelo.",
+        "a-buymecoffee": "Bilhan mo ako ng kape",
         "mark-en": "Ingles",
         "mark-ph": "Tagalog",
         "mark-es": "Espanyol",
         "p-intro": "<i>Software developer</i> na naka-base sa Singapore.",
         "p-exp-latest": "Kasalukuyang humahawak ng tungkulin bilang pinuno ng isang pangkat ng sampung (10) mga tagapag-<i>develop</i> ng <i>software</i> sa <a href='https://corporate.mims.com' target='_blank'>MIMS PTE. LTD.</a>, na kung saan pinapalawak ang mga kaalaman sa teknolohiyang may kaugnayan sa <i>Microsoft</i>, tulad ng <i>C#</i>, <i>Azure</i>, at <i>Power Apps</i>.",
         "p-exp-previous": "Noong nakaraan ay nagsilbing <i>Software Engineer</i> sa Genpact Headstrong, isang tanyag na kumpanya sa larangan ng IT <i>Consulting</i>. Naging bahagi ng mga mahahalagang proyekto mula sa tradisyunal na ASP.NET MVC na pinapatakbo sa <abbr title='Internet Information Services'>IIS</abbr> hanggang sa mas makabagong solusyon gamit ang <i>.NET Core</i> at <abbr title='Amazon Web Services'>AWS</abbr>.",
-        "p-cv":"Maari mong silipin at i-<i>download</i> ang aking CV <a href='https://1drv.ms/b/c/0fc4d38e518b20dd/EaEO4IfFSLxChpPedVR-NhoBy9bBULelIX8NRQfFq7Lv4Q?e=tCIxu2' target='_blank'>rito</a>, o basahin ang aking paboritong <a href='' target='_blank'>tula</a>.",
+        "p-cv":"Maari mong silipin at i-<i>download</i> ang aking CV <a href='https://1drv.ms/b/c/0fc4d38e518b20dd/EaEO4IfFSLxChpPedVR-NhoBy9bBULelIX8NRQfFq7Lv4Q?e=tCIxu2' target='_blank'>rito</a>.",
         "p-contact":"Huwag mag-atubiling <a href='mailto:contact@eleazerarcilla.com' target='_blank'>makipag-ugnayan</a>.",
         "p-footer": "Ang pook-sapot na ito ay gawa sa <abbr title='Hypertext Mark-up Language'>HTML</abbr> + <a href='https://picocss.com/' target='_blank'>Pico CSS</a>, na nakatalaga sa <a href='https://pages.github.com/' target='_blank'>GitHub Pages</a>.",
-        "sm-copyright": "© 2025 Eleazer Arcilla. Sa ngayon ay: v1.0.0."
+        "sm-copyright": "© 2025 Eleazer Arcilla. Sa ngayon ay: v1.0.0.",
+        "sm-read-a-poem": "Magbasa ng isang tula"
     },
     "ES": {
+        "title": "Mi nombre es 'Eleaz'",
         "sm-pseudo": "<span id='sp-years'>9</span> años de pasión por la tecnología, las personas y el progreso",
         "sm-translation": "Mostrar esta página en:",
-        "a-buymecoffee": "Compra para Eleaz una taza de café helado.",
+        "a-buymecoffee": "Cómprame un café",
         "mark-en": "Inglés",
         "mark-ph": "Tagalog",
         "mark-es": "Español",
         "p-intro": "Desarrollador de <i>software</i> con sede en Singapur.",
         "p-exp-latest": "Actualmente trabajando en <a href='https://corporate.mims.com' target='_blank'>MIMS PTE. LTD.</a> como líder de equipo de 10 ingenieros de <i>software</i>, utilizando el <i>stack</i> tecnológico de <i>Microsoft</i> como <i>C#</i>, <i>Azure</i> y <i>Power Apps</i>.",
         "p-exp-previous": "Anteriormente trabajé como Ingeniero de <i>software</i> en Genpact Headstrong, una empresa de consultoría de TI. Contribuí en varios proyectos clave, desde ASP.NET MVC alojado en <abbr title='Internet Information Services'>IIS</abbr> hasta <i>.NET Core</i> en <abbr title='Amazon Web Services'>AWS</abbr>.",
-        "p-cv":"Echa un vistazo a mi CV <a href='https://1drv.ms/b/c/0fc4d38e518b20dd/EaEO4IfFSLxChpPedVR-NhoBy9bBULelIX8NRQfFq7Lv4Q?e=tCIxu2' target='_blank'>aquí</a>, o lee mi <a href='' target='_blank'>poema</a> favorito.",
+        "p-cv":"Echa un vistazo a mi CV <a href='https://1drv.ms/b/c/0fc4d38e518b20dd/EaEO4IfFSLxChpPedVR-NhoBy9bBULelIX8NRQfFq7Lv4Q?e=tCIxu2' target='_blank'>aquí</a>.",
         "p-contact":"No dudes en <a href='mailto:contact@eleazerarcilla.com' target='_blank'>contactarme</a>.",
         "p-footer": "Este sitio web está hecho con <abbr title='Hypertext Mark-up Language'>HTML</abbr> + <a href='https://picocss.com/' target='_blank'>Pico CSS</a>, alojado en una <a href='https://pages.github.com/' target='_blank'>GitHub Pages</a>.",
-        "sm-copyright": "© 2025 Eleazer Arcilla. Por ahora: v1.0.0."
+        "sm-copyright": "© 2025 Eleazer Arcilla. Por ahora: v1.0.0.",
+        "sm-read-a-poem": "Leer un poema"
     }
 }

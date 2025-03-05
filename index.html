@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
     <head>
-        <title>Eleaz is the name</title>
+        <title data-translationkey="title">My name is 'Eleaz'</title>
 
         <!--Region META Tags-->
         <meta charset="utf-8">
@@ -36,7 +36,7 @@
                     </ul>
                     <ul>
                         <li class="no-padding">
-                            <a data-translationkey="a-buymecoffee" href="https://buymeacoffee.com/eleaz" target="_blank" title="Buy Eleaz a cup of Iced Coffee">
+                            <a data-translationkey="a-buymecoffee" href="https://buymeacoffee.com/eleaz" target="_blank" title="Buy me a coffee">
                                 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" width="60" height="60" fill="#000000">
                                     <g id="SVGRepo_bgCarrier" stroke-width="0"/>
                                     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
@@ -81,8 +81,24 @@
             <p data-translationkey="p-exp-previous">Previously worked as a Software Engineer at Genpact Headstrong an IT consulting company. Contributed to several key projects from ASP.NET MVC hosted in IIS up to .Net Core in AWS.</p>    
             <p data-translationkey="p-cv">Take a look at my CV <a href="https://1drv.ms/b/c/0fc4d38e518b20dd/EaEO4IfFSLxChpPedVR-NhoBy9bBULelIX8NRQfFq7Lv4Q?e=tCIxu2" target="_blank">here</a>, or <a href="" target="_blank">read a poem</a>.</p>
             <p data-translationkey="p-contact">Feel free to get in <a href="mailto:contact@eleazerarcilla.com" target="_blank">touch</a>.</p>
-          </div>
-           
+            
+            <br />
+            <br />
+            <details>
+                <summary role="button" class="outline secondary"><small data-translationkey="sm-read-a-poem">Read a poem</small></summary>
+                <blockquote>
+                    “She had blue skin, And so did he.  <br />
+                    He kept it hid, And so did she.  <br />
+                    They searched for blue, Their whole life through.  <br />
+                    Then passed right by– <br />
+                    And never knew.”    
+                    <br />
+                    <footer>
+                      <cite>— Shel Silverstein</cite>
+                    </footer>
+                  </blockquote>
+            </details>
+        </div>
         </main>
       
         <footer>
@@ -91,8 +107,8 @@
                 <div>
                     <section>
                         <p data-translationkey="p-footer">This website is built in basic HTML + <a href="https://picocss.com/" target="_blank">Pico CSS</a>, hosted in <a href="https://pages.github.com/" target='_blank'>GitHub Pages</a>.</p>
-                        <a data-translationkey="a-buymecoffee" href="https://buymeacoffee.com/eleaz" target="_blank" title="Buy Eleaz a cup of Iced Coffee">
-                            <button class="outline contrast"><small>Buy me a coffee</small></button></a>
+                        <a data-translationkey="a-buymecoffee" href="https://buymeacoffee.com/eleaz" target="_blank" title="Buy me a coffee">
+                            <button class="outline contrast"><small data-translationkey="a-buymecoffee">Buy me a coffee</small></button></a>
                     </section>
                 </div>
                 <div>
@@ -234,7 +250,15 @@
     function ApplyTranslation(){
         GetSupportedFields().forEach(element => {
             if(element == "a-buymecoffee"){
-                document.querySelectorAll(`[data-translationkey='${element}']`).forEach(element => {element.title = translations[default_lang][element] });
+                document.querySelectorAll(`[data-translationkey='${element}']`).forEach(item => 
+                {
+
+                    if(item.innerHTML !== "" && item.tagName == "A")
+                        item.title = translations[default_lang][element];
+                    else
+                        item.innerText = translations[default_lang][element];
+                    
+                });
                 return;
             }
             document.querySelector(`[data-translationkey='${element}']`).innerHTML = translations[default_lang][element];
