@@ -1,6 +1,6 @@
 {
     "EN": {
-        "title": "Hello, I am Eleaz",
+        "title": "Hello! I am Eleaz",
         "sm-pseudo": "<span id='sp-years'>9</span> years of passion in Tech, People and Progress",
         "sm-translation": "View this page in:",
         "a-buymecoffee": "Buy me a coffee",
@@ -9,15 +9,15 @@
         "mark-es": "Spanish",
         "p-intro": "Software developer based in Singapore.",
         "p-exp-latest": "Team Lead at <a href='https://corporate.mims.com' target='_blank'>MIMS PTE. LTD.</a>, managing a team of 10 software engineers and delivering scalable solutions using the Microsoft technology ecosystem, including C#, .NET, Azure, and Power Platform.",
-        "p-exp-previous": "Served as a Software Engineer at Genpact Headstrong, an IT consulting firm, contributing to critical projects ranging from ASP.NET MVC hosted on <abbr title='Internet Information Services'>IIS</abbr> to modernizing applications with .NET Core in <abbr title='Amazon Web Services'>AWS</abbr> environments.",
+        "p-exp-previous": "Served as a Software Engineer at <a href='https://www.genpact.com' target='_blank'>Genpact Headstrong</a>, an IT consulting firm, contributing to critical projects ranging from ASP.NET MVC hosted on <abbr title='Internet Information Services'>IIS</abbr> to modernizing applications with .NET Core in <abbr title='Amazon Web Services'>AWS</abbr> environments.",
         "p-cv":"View my CV <a href='EleazerArcilla_CV2025Q3.pdf' target='_blank'>here</a>.",
         "p-contact":"Feel free to get in <a href='mailto:contact@eleazerarcilla.com' target='_blank'>touch</a>.",
         "p-footer": "This website is built in basic HTML + <a href='https://picocss.com/' target='_blank'>Pico CSS</a>, hosted in <a href='https://pages.github.com/' target='_blank'>GitHub Pages</a>.",
-        "sm-copyright": "© 2025 Eleazer Arcilla. Currently: v1.1.0.",
+        "sm-copyright": "© 2025 Eleazer Arcilla. Currently: v1.1.1.",
         "sm-read-a-poem": "Read a poem"
     },
     "TL": {
-        "title": "Ang ngalan ko ay Eleaz",
+        "title": "Mabuhay! Ako si Eleaz",
         "sm-pseudo": "<span id='sp-years'>9</span> na taon ng sigasig sa Karunungan, Tao, at Pagsulong",
         "sm-translation": "Ipakita ang pahinang ito sa:",
         "a-buymecoffee": "Bilhan mo ako ng kape",
@@ -30,11 +30,11 @@
         "p-cv":"Maari mong makita ang aking CV <a href='EleazerArcilla_CV2025Q3.pdf' target='_blank'>rito</a>.",
         "p-contact":"Huwag mag-atubiling <a href='mailto:contact@eleazerarcilla.com' target='_blank'>makipag-ugnayan</a>.",
         "p-footer": "Ang pook-sapot na ito ay gawa sa <abbr title='Hypertext Mark-up Language'>HTML</abbr> + <a href='https://picocss.com/' target='_blank'>Pico CSS</a>, na nakatalaga sa <a href='https://pages.github.com/' target='_blank'>GitHub Pages</a>.",
-        "sm-copyright": "© 2025 Eleazer Arcilla. Sa ngayon ay: v1.1.0.",
+        "sm-copyright": "© 2025 Eleazer Arcilla. Sa ngayon ay: v1.1.1.",
         "sm-read-a-poem": "Magbasa ng isang tula"
     },
     "ES": {
-        "title": "Hola, soy Eleaz",
+        "title": "Hola! Soy Eleaz",
         "sm-pseudo": "<span id='sp-years'>9</span> años de pasión por la tecnología, las personas y el progreso",
         "sm-translation": "Mostrar esta página en:",
         "a-buymecoffee": "Cómprame un café",
@@ -47,7 +47,7 @@
         "p-cv":"Echa un vistazo a mi CV <a href='EleazerArcilla_CV2025Q3.pdf' target='_blank'>aquí</a>.",
         "p-contact":"No dudes en <a href='mailto:contact@eleazerarcilla.com' target='_blank'>contactarme</a>.",
         "p-footer": "Este sitio web está hecho con <abbr title='Hypertext Mark-up Language'>HTML</abbr> + <a href='https://picocss.com/' target='_blank'>Pico CSS</a>, alojado en una <a href='https://pages.github.com/' target='_blank'>GitHub Pages</a>.",
-        "sm-copyright": "© 2025 Eleazer Arcilla. Por ahora: v1.1.0.",
+        "sm-copyright": "© 2025 Eleazer Arcilla. Por ahora: v1.1.1.",
         "sm-read-a-poem": "Leer un poema"
     }
 }
