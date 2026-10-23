@@ -1,0 +1,3467 @@
+/* Liquid Glass design layer - overrides on top of Pico CSS. Everything here is additive; no Pico rule is edited directly. */
+
+:root {
+    /* ---- Typography ---- */
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+        "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-scale: 1;
+    --font-weight-base: 400;
+
+    /* ---- Liquid glass tuning (driven by the clarity slider, 0-100) ---- */
+    --glass-clarity: 55;
+    --glass-tint: 255, 255, 255;
+    --glass-contrast-boost: 0;
+    --glass-fill-alpha: calc(0.12 - var(--glass-clarity) * 0.00045 + var(--glass-contrast-boost));
+    --glass-rim-bright: 0.85;
+    --glass-rim-dim: 0.06;
+    --glass-radius: 22px;
+    --glass-radius-sm: 14px;
+
+    /* ---- Motion ---- */
+    --ease-liquid: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* Pico redefines --pico-color to white *inside* <button> elements for its default filled-button look. */
+    --ui-text: var(--pico-color);
+    --ui-muted: var(--pico-muted-color);
+}
+
+[data-theme="dark"] {
+    --pico-background-color: #000000;
+    --glass-rim-bright: 0.28;
+    --glass-rim-dim: 0.045;
+    /* Much lower than before - now that the actual lens distortion (not blur, not opacity) is what reads as "glass" */
+    --glass-fill-alpha: calc(0.1 - var(--glass-clarity) * 0.0006 + var(--glass-contrast-boost));
+}
+
+[data-contrast="high"] {
+    --glass-contrast-boost: 0.12;
+    --glass-rim-bright: 1;
+}
+
+html {
+    font-size: calc(100% * var(--font-scale));
+}
+
+/* Soft cross-fade for the light/dark switch. */
+html.theme-transition,
+html.theme-transition body,
+html.theme-transition :not(.settings-panel):not(.settings-panel *) {
+    transition:
+        background-color 0.38s var(--ease-out),
+        border-color 0.38s var(--ease-out),
+        color 0.38s var(--ease-out),
+        box-shadow 0.38s var(--ease-out),
+        fill 0.38s var(--ease-out),
+        stroke 0.38s var(--ease-out) !important;
+}
+
+body {
+    font-family: var(--font-sans);
+    font-weight: var(--font-weight-base);
+}
+
+/* Subtle fixed backdrop art (soft color orbs + thin rings/lines) so the glass has edges and color to refract. */
+:root {
+    --art-a: rgba(110,130,255,.22);
+    --art-b: rgba(255,130,185,.18);
+    --art-c: rgba(80,200,175,.18);
+    --art-lines: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800' preserveAspectRatio='xMidYMid slice' fill='none' stroke='rgba(60,80,140,0.22)' stroke-width='1.5'%3E%3Ccircle cx='230' cy='210' r='70'/%3E%3Ccircle cx='230' cy='210' r='130'/%3E%3Ccircle cx='230' cy='210' r='190'/%3E%3Ccircle cx='230' cy='210' r='250'/%3E%3Ccircle cx='960' cy='600' r='60'/%3E%3Ccircle cx='960' cy='600' r='120'/%3E%3Ccircle cx='960' cy='600' r='180'/%3E%3Cpath d='M0 640 L520 120 M60 720 L580 200 M120 800 L640 280 M700 0 L1200 500 M780 0 L1200 420'/%3E%3C/svg%3E");
+}
+
+[data-theme="dark"] {
+    --art-a: rgba(90,110,255,.3);
+    --art-b: rgba(205,80,165,.22);
+    --art-c: rgba(40,170,150,.2);
+    --art-lines: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800' preserveAspectRatio='xMidYMid slice' fill='none' stroke='rgba(160,180,255,0.2)' stroke-width='1.5'%3E%3Ccircle cx='230' cy='210' r='70'/%3E%3Ccircle cx='230' cy='210' r='130'/%3E%3Ccircle cx='230' cy='210' r='190'/%3E%3Ccircle cx='230' cy='210' r='250'/%3E%3Ccircle cx='960' cy='600' r='60'/%3E%3Ccircle cx='960' cy='600' r='120'/%3E%3Ccircle cx='960' cy='600' r='180'/%3E%3Cpath d='M0 640 L520 120 M60 720 L580 200 M120 800 L640 280 M700 0 L1200 500 M780 0 L1200 420'/%3E%3C/svg%3E");
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    /* art-bg is generated per visit by app.js (deferred). */
+    background: var(--art-bg, none);
+    animation: art-in .5s ease-out both;
+}
+
+@keyframes art-in { from { opacity: 0; } to { opacity: 1; } }
+
+h1, h2, h3, h4, h5, h6, hgroup h1 {
+    font-weight: calc(var(--font-weight-base) + 200);
+    letter-spacing: -0.02em;
+}
+
+.text-warning {
+    color: #b45309;
+}
+
+[data-theme="dark"] .text-warning {
+    color: #f0b429;
+}
+
+.inline-block {
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    margin: 5px;
+    align-items: center;
+    justify-content: center;
+}
+
+a:has(div.inline-block) {
+    color: inherit;
+}
+
+.no-padding {
+    padding: 0 !important;
+}
+
+/* Core glass surface This deliberately has no Gaussian blur. */
+.glass {
+    position: relative;
+    border-radius: var(--glass-radius);
+    isolation: isolate;
+    /* Single rim-light border (this gradient border-box IS the edge real iOS glass has exactly one crisp edge */
+    border: 1px solid transparent;
+    background:
+        linear-gradient(rgba(255,255,255,var(--glass-fill-alpha)), rgba(255,255,255,var(--glass-fill-alpha))) padding-box,
+        linear-gradient(180deg, rgba(255,255,255,var(--glass-rim-bright)), rgba(255,255,255,.16) 16%, rgba(255,255,255,.05) 72%, rgba(0,0,0,.18)) border-box;
+    box-shadow:
+        0 2px 3px rgba(0, 0, 0, 0.08),
+        0 16px 34px rgba(20, 24, 34, 0.14);
+}
+
+.glass::before,
+.glass::after {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.glass > * {
+    position: relative;
+    z-index: 1;
+}
+
+.glass::before {
+    display: none;
+}
+
+/* No border here on purpose - this used to draw its own 1px ring 2px inside the element's real edge */
+.glass::after {
+    inset: 2px;
+    box-shadow: inset 0 0 14px rgba(255,255,255,.12);
+    opacity: .8;
+}
+
+[data-theme="dark"] .glass {
+    background:
+        linear-gradient(rgba(19,20,24,calc(.52 - var(--glass-clarity) * .0035 + var(--glass-contrast-boost))), rgba(19,20,24,calc(.52 - var(--glass-clarity) * .0035 + var(--glass-contrast-boost)))) padding-box,
+        linear-gradient(180deg, rgba(255,255,255,.36), rgba(255,255,255,.08) 18%, rgba(255,255,255,.025) 72%, rgba(0,0,0,.24)) border-box;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 1px 2px rgba(0, 0, 0, 0.3),
+        0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+/* Header */
+/* Floating pill: pinned 15px from the top with 15px of page visible on either side */
+.header-fixed {
+    z-index: 200;
+    position: sticky;
+    top: 15px;
+    margin: 0 15px;
+    width: auto;
+    padding: 0.4rem 0;
+}
+
+.header-fixed.glass {
+    border-radius: var(--glass-radius);
+}
+
+/* The header's lens/blur lives on ::before instead of the header element: an ancestor with backdrop-filter becomes a "backdrop */
+.header-fixed.glass::before,
+footer.glass::before {
+    display: block;
+    inset: 0;
+    border-radius: inherit;
+    -webkit-backdrop-filter: var(--lens-backdrop, blur(6px));
+    backdrop-filter: var(--lens-backdrop, blur(6px));
+}
+
+/* Light mode: a light-grey tinted glass card, like any other .glass surface on the page - not the dark hero-banner overlay */
+[data-theme="light"] .header-fixed.glass {
+    border: 0;
+    border-radius: var(--glass-radius);
+    padding: 0.4rem 0;
+    background: rgba(110, 110, 118, 0.42);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 1px 2px rgba(0, 0, 0, 0.06),
+        0 12px 28px rgba(20, 24, 34, 0.1);
+}
+
+/* Dark mode keeps the same header geometry, but has a uniform surface. */
+[data-theme="dark"] .header-fixed.glass {
+    border: 0;
+    border-radius: var(--glass-radius);
+    padding: 0.4rem 0;
+    background: rgba(11,13,18,.42);
+    box-shadow: inset 0 -1px rgba(255,255,255,.12), 0 12px 28px rgba(0,0,0,.24);
+}
+
+/* The header's top/bottom-dark rim, done right this time: masked to the actual 1px ring via mask-composite:exclude */
+.header-fixed.glass::after,
+footer.glass::after {
+    inset: 0;
+    padding: 1px;
+    box-sizing: border-box;
+    opacity: 1;
+    box-shadow: none;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+}
+
+[data-theme="light"] .header-fixed.glass::after,
+[data-theme="light"] footer.glass::after {
+    background: radial-gradient(60% 100% at 50% 0%, rgba(25, 35, 65, 0.55), transparent 75%),
+        radial-gradient(60% 100% at 50% 100%, rgba(25, 35, 65, 0.4), transparent 75%);
+}
+
+[data-theme="dark"] .header-fixed.glass::after,
+[data-theme="dark"] footer.glass::after {
+    background: radial-gradient(60% 100% at 50% 0%, rgba(255, 255, 255, 0.3), transparent 75%),
+        radial-gradient(60% 100% at 50% 100%, rgba(255, 255, 255, 0.18), transparent 75%);
+}
+
+
+/* These three were each duplicated byte-for-byte under [data-theme="light"] and [data-theme="dark"] - none of them */
+.header-fixed hgroup h1 {
+    /* Smaller than the old clamp(2rem, 4vw, 3.5rem) hero-sized title that's what made the pill tall (border-radius:999px clamps to */
+    font-size: clamp(1.6rem, 2.2vw, 2.1rem);
+    line-height: 1.1;
+    margin-bottom: .1rem;
+}
+
+.header-fixed hgroup small {
+    /* !important because Pico's own stylesheet is cross-origin (CDN) */
+    font-size: 0.7rem !important;
+}
+
+.header-fixed .icon-toolbar {
+    gap: .55rem;
+}
+
+.header-fixed .vr {
+    display: none;
+}
+
+/* Circular liquid glass control (coffee / sun / moon / FAB). */
+/* conic-gradient(from 0deg...) starts at 12 o'clock and sweeps clockwise */
+@property --angle-1 { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@property --angle-2 { syntax: "<angle>"; inherits: false; initial-value: -45deg; }
+
+.liquid-control.liquid-control {
+    --pen-ease: cubic-bezier(0.25, 1, 0.5, 1);
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+    border: 0 !important;
+    border-radius: 9999px;
+    overflow: hidden;
+    background: linear-gradient(-75deg, rgb(255 255 255 / 5%), rgb(255 255 255 / 20%), rgb(255 255 255 / 5%)) !important;
+    -webkit-backdrop-filter: blur(4px) saturate(1.12);
+    backdrop-filter: blur(4px) saturate(1.12);
+    box-shadow:
+        inset 0 2px 2px rgb(0 0 0 / 5%),
+        inset 0 -2px 2px rgb(255 255 255 / 50%),
+        0 4px 2px -2px rgb(0 0 0 / 20%),
+        inset 0 0 2px 4px rgb(255 255 255 / 20%) !important;
+    color: #fff !important;
+    transition: transform 0.4s var(--pen-ease), box-shadow 0.4s var(--pen-ease), --angle-1 0.55s var(--pen-ease) !important;
+}
+
+.liquid-control.liquid-control.fab {
+    position: fixed;
+    z-index: 400;
+}
+
+.liquid-control.liquid-control::before {
+    content: "";
+    display: block;
+    position: absolute;
+    z-index: 3;
+    inset: 1px;
+    border-radius: 9999px;
+    background: linear-gradient(var(--angle-2, -45deg),
+        transparent 0%, rgb(255 255 255 / 50%) 40%,
+        rgb(255 255 255 / 50%) 50%, transparent 55%) no-repeat;
+    background-size: 200% 200%;
+    background-position: 0 50%;
+    opacity: 1;
+    pointer-events: none;
+    transition: background-position .5s var(--pen-ease), --angle-2 .5s var(--pen-ease);
+}
+
+.liquid-control.liquid-control::after {
+    content: "";
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    box-sizing: border-box;
+    padding: 1px;
+    border-radius: 9999px;
+    background:
+        conic-gradient(from var(--angle-1) at 50% 50%,
+            rgb(0 0 0 / 50%), transparent 5% 40%,
+            rgb(0 0 0 / 50%) 50%, transparent 60% 95%,
+            rgb(0 0 0 / 50%)),
+        linear-gradient(rgb(255 255 255 / 50%), rgb(255 255 255 / 50%));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 50%);
+    pointer-events: none;
+    transition: --angle-1 .5s var(--pen-ease);
+}
+
+.lens-fallback .liquid-control.liquid-control::after {
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 38%);
+}
+
+.liquid-control.liquid-control > svg,
+.liquid-control.liquid-control > span {
+    position: relative;
+    z-index: 4;
+}
+
+.liquid-control.liquid-control:hover,
+.liquid-control.liquid-control:focus-visible {
+    --angle-1: -125deg;
+    transform: scale(0.975);
+    -webkit-backdrop-filter: blur(1px) saturate(1.12);
+    backdrop-filter: blur(1px) saturate(1.12);
+    box-shadow:
+        inset 0 2px 2px rgb(0 0 0 / 5%),
+        inset 0 -2px 2px rgb(255 255 255 / 50%),
+        0 4px 2px -2px rgb(0 0 0 / 20%),
+        inset 0 0 2px 4px rgb(255 255 255 / 28%) !important;
+}
+
+.liquid-control.liquid-control:hover::before,
+.liquid-control.liquid-control:focus-visible::before {
+    --angle-2: -125deg;
+    background-position: 100% 50%;
+}
+
+.liquid-control.liquid-control:active {
+    --angle-1: -75deg;
+    transform: perspective(240px) rotateX(18deg) scale(0.968);
+    box-shadow:
+        inset 0 2px 3px rgb(0 0 0 / 18%),
+        inset 0 -1px 1px rgb(255 255 255 / 34%) !important;
+}
+
+.liquid-control.liquid-control:active::before {
+    background-position: 15% 0;
+}
+
+
+@media (hover: none) and (pointer: coarse) {
+    .liquid-control.liquid-control::before,
+    .liquid-control.liquid-control:hover::before,
+    .liquid-control.liquid-control:active::before {
+        background-position: 35% 0;
+    }
+}
+
+:root {
+    --ctl-size: 52px;
+}
+
+.header-fixed .icon-toolbar .liquid-control {
+    width: var(--ctl-size);
+    height: var(--ctl-size);
+    min-width: var(--ctl-size) !important;
+    min-height: var(--ctl-size) !important;
+}
+
+.liquid-control.icon-btn svg,
+.liquid-control.fab svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* Align the toolbar buttons on one center line: the coffee is an <a> and the sun/moon a <button> */
+.header-fixed .icon-toolbar {
+    align-items: center;
+}
+
+.header-fixed .icon-toolbar > li {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    line-height: 0;
+}
+
+.header-fixed .icon-toolbar .liquid-control {
+    margin: 0 !important;
+    vertical-align: middle;
+}
+
+/* Content-aware icon color: app.js samples what is actually behind each control and toggles these classes. */
+.liquid-control.liquid-control.liquid-control.on-light {
+    color: #374151 !important;
+}
+
+.liquid-control.liquid-control.liquid-control.on-dark {
+    color: #fff !important;
+}
+
+/* The supplied recording has a denser dark treatment: a grey glass volume, lit upper-left crescent */
+[data-theme="dark"] .liquid-control.liquid-control {
+    background:
+        radial-gradient(circle at 31% 22%, rgb(255 255 255 / 60%), rgb(255 255 255 / 24%) 38%, rgb(77 83 96 / 42%) 72%, rgb(15 18 25 / 50%) 100%),
+        linear-gradient(-75deg, rgb(255 255 255 / 10%), rgb(255 255 255 / 27%), rgb(255 255 255 / 9%)) !important;
+    box-shadow:
+        inset 0 2px 3px rgb(0 0 0 / 20%),
+        inset 0 -2px 3px rgb(255 255 255 / 54%),
+        5px 9px 13px rgb(0 0 0 / 58%),
+        0 3px 5px rgb(0 0 0 / 46%),
+        inset 0 0 4px 4px rgb(255 255 255 / 26%) !important;
+}
+
+[data-theme="dark"] .liquid-control.liquid-control::after {
+    box-shadow:
+        inset 0 0 0 1px rgb(255 255 255 / 68%),
+        inset 0 1px 1px rgb(255 255 255 / 48%);
+}
+
+.header-fixed nav {
+    align-items: center;
+}
+
+/* Pico's .container centers itself with a capped max-width, so on wide viewports the pill (which stretches edge-to-edge via */
+.header-fixed header.container {
+    max-width: none;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 1.5rem;
+    padding-right: 1.25rem;
+}
+
+/* Pico's defaults add a LOT of vertical space here that has nothing to do with my own header padding: nav > ul > li gets 16px */
+.header-fixed nav > ul > li {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.header-fixed hgroup {
+    margin-bottom: 0;
+}
+
+.icon-toolbar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none !important;
+    border-radius: 50%;
+    background: transparent !important;
+    color: var(--ui-text) !important;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s var(--ease-out), transform 0.15s var(--ease-out);
+}
+
+.icon-btn:not(.liquid-control):hover,
+.icon-btn:not(.liquid-control):focus-visible {
+    background: rgba(var(--glass-tint), 0.16) !important;
+}
+
+[data-theme="dark"] .icon-btn:hover,
+[data-theme="dark"] .icon-btn:focus-visible {
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* A deliberate, subtle focus ring instead of the browser's raw default (which is a hard rectangular blue outline that doesn't */
+.fab:focus-visible,
+.glass-btn:focus-visible,
+.icon-btn:focus-visible,
+.settings-panel:focus-visible {
+    outline: 2px solid rgba(10, 132, 255, 0.6);
+    outline-offset: 3px;
+}
+
+.fab:focus:not(:focus-visible),
+.glass-btn:focus:not(:focus-visible),
+.icon-btn:focus:not(:focus-visible),
+.settings-panel:focus:not(:focus-visible) {
+    outline: none;
+}
+
+.icon-btn:active {
+    transform: scale(0.9);
+}
+
+.icon-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.header-fixed .icon-toolbar .icon-btn:not(.liquid-control) {
+    appearance: none !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+.header-fixed .icon-toolbar .icon-btn svg {
+    display: block;
+    fill: currentColor;
+}
+
+.vr {
+    width: 1px;
+    height: 28px;
+    background-color: rgba(128, 128, 128, 0.35);
+    margin: 0 0.5rem;
+}
+
+[data-theme="dark"] .vr {
+    background-color: rgba(255, 255, 255, 0.18);
+}
+
+.socials,
+footer.glass ol.socials {
+    list-style: none !important;
+    padding: 0;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+footer.glass ol.socials > li {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Footer - floating glass card, iOS "grouped" style */
+footer.glass,
+footer.glass.container {
+    position: relative;
+    max-width: none;
+    width: auto;
+    margin: 3rem 15px 15px;
+    padding: 1.25rem 1.5rem;
+    border-radius: 22px;
+    color: var(--pico-muted-color);
+    font-size: 0.9rem;
+}
+
+/* Socials sit as circular glass buttons in the footer's upper-right corner. */
+footer.glass ol.socials {
+    position: absolute;
+    top: 0.9rem;
+    right: 1.1rem;
+    gap: 0.5rem;
+}
+
+footer.glass .grid {
+    grid-template-columns: 1fr;
+}
+
+footer.glass ol.socials .icon-btn.liquid-control {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    min-height: 30px;
+}
+
+footer.glass ol.socials .inline-block {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+
+footer.glass ol.socials svg {
+    width: 16px;
+    height: 16px;
+}
+
+footer.glass ol.socials svg * {
+    fill: currentColor;
+}
+
+.glass-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 999px !important;
+    padding: 0.5em 1em;
+    color: var(--ui-text) !important;
+    transition: transform 0.15s var(--ease-out), background-color 0.2s var(--ease-out);
+}
+
+.glass-btn:hover {
+    transform: translateY(-1px);
+}
+
+.glass-btn:active {
+    transform: translateY(0) scale(0.97);
+}
+
+.glass-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* FAB */
+.fab {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    z-index: 400;
+    width: 56px;
+    height: 56px;
+    /* Pico's default <button> padding is rem-based, so it grows with the font-size slider. .fab is a fixed 56x56px box */
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--ui-text) !important;
+    transition: transform 0.25s var(--ease-liquid);
+}
+
+.fab.glass {
+    border-radius: 50%;
+}
+
+.fab:hover {
+    transform: scale(1.06);
+}
+
+.fab:active {
+    transform: scale(0.94);
+}
+
+.fab svg {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    transition: transform 0.35s var(--ease-liquid);
+}
+
+.fab.is-active svg {
+    transform: rotate(90deg);
+}
+
+/* Settings panel - genie / morph animation from the FAB */
+.settings-panel {
+    /* Where the FAB's centre sits relative to the panel's bottom-right corner: the genie grows out of (and shrinks back */
+    --fab-ox: 28px;
+    --fab-oy: -36px;
+    position: fixed;
+    top: auto !important;
+    left: auto !important;
+    right: 1.5rem;
+    bottom: 5.5rem;
+    z-index: 400;
+    width: 320px !important;
+    max-width: calc(100vw - 2rem);
+    max-height: min(75vh, 580px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    contain: paint;
+    padding: 1.25rem 1.25rem 1.5rem;
+    transform-origin: calc(100% - var(--fab-ox)) calc(100% - var(--fab-oy));
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    animation: none !important;
+}
+
+.settings-panel.glass {
+    background:
+        linear-gradient(rgba(248,249,252,.22), rgba(248,249,252,.22)) padding-box,
+        linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.22) 20%, rgba(80,85,96,.16) 100%) border-box;
+}
+
+[data-theme="dark"] .settings-panel.glass {
+    background:
+        linear-gradient(rgba(18,20,25,.76), rgba(18,20,25,.76)) padding-box,
+        linear-gradient(180deg, rgba(255,255,255,.36), rgba(255,255,255,.08) 20%, rgba(0,0,0,.3) 100%) border-box;
+}
+
+/* Open/close animate transform + opacity only (compositor-friendly). */
+.settings-panel.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    will-change: transform;
+    /* `backwards`, not `both`: a finished animation that still holds opacity keeps the panel a backdrop root */
+    animation: settings-surface-open 520ms cubic-bezier(.2, .9, .25, 1) backwards !important;
+}
+
+.settings-panel.is-closing {
+    visibility: visible !important;
+    pointer-events: none !important;
+    will-change: transform;
+    animation: settings-surface-close 240ms cubic-bezier(.4, 0, .8, .3) both !important;
+}
+
+@keyframes settings-surface-open {
+    0%   { transform: scale(.14); opacity: 0; }
+    35%  { opacity: 1; }
+    70%  { transform: scale(1.025); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes settings-surface-close {
+    0%   { transform: scale(1); opacity: 1; }
+    100% { transform: scale(.14); opacity: 0; }
+}
+
+/* Deliberately NOT gated behind @media (prefers-reduced-motion: reduce) here: that rule was silently swallowing the genie */
+
+.settings-panel h2 {
+    font-size: 1rem;
+    margin: 0 0 1rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid rgba(var(--glass-tint), 0.14);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+[data-theme="dark"] .settings-panel h2 {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.settings-panel .close-btn {
+    width: 32px;
+    height: 32px;
+}
+
+.setting-row {
+    padding: 0.9rem 0;
+    border-bottom: 1px solid rgba(var(--glass-tint), 0.1);
+}
+
+[data-theme="dark"] .setting-row {
+    border-bottom-color: rgba(255, 255, 255, 0.07);
+}
+
+.setting-row:first-of-type {
+    padding-top: 0;
+}
+
+.setting-row:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.setting-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    font-weight: calc(var(--font-weight-base) + 100);
+    margin-bottom: 0.55rem;
+    color: var(--pico-color);
+}
+
+.setting-label .setting-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--pico-muted-color);
+}
+
+.setting-label .setting-icon svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+.setting-value {
+    font-variant-numeric: tabular-nums;
+    color: var(--pico-muted-color);
+    font-size: 0.78rem;
+}
+
+/* ---- Range slider ---- */
+input[type="range"].glass-range {
+    -webkit-appearance: none;
+    appearance: none;
+    accent-color: #0a84ff;
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(
+        to right,
+        #0a84ff var(--fill, 50%),
+        rgba(120, 120, 128, 0.22) var(--fill, 50%)
+    );
+    outline: none;
+    margin: 0;
+    border: 1px solid rgba(255,255,255,.55);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.14), 0 1px 0 rgba(255,255,255,.66);
+}
+
+[data-theme="dark"] input[type="range"].glass-range {
+    background: linear-gradient(
+        to right,
+        #0a84ff var(--fill, 50%),
+        rgba(255, 255, 255, 0.16) var(--fill, 50%)
+    );
+}
+
+input[type="range"].glass-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    /* Frosted, not glossy: a near-flat tint instead of a bright radial "sphere" highlight */
+    background: rgba(238, 239, 242, 0.96);
+    border: 1px solid rgba(200, 202, 210, 0.6);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    transition: transform 0.15s var(--ease-out);
+}
+
+input[type="range"].glass-range::-webkit-slider-thumb:active {
+    transform: scale(1.15);
+}
+
+input[type="range"].glass-range::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(238, 239, 242, 0.96);
+    border: 1px solid rgba(200, 202, 210, 0.6);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+}
+
+/* Split, not comma-joined: a selector list mixing ::-webkit-slider-thumb and ::-moz-range-thumb makes a browser that only */
+[data-theme="dark"] input[type="range"].glass-range::-webkit-slider-thumb {
+    background: rgba(72, 74, 82, 0.96) !important;
+    border-color: rgba(120, 122, 132, 0.55) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] input[type="range"].glass-range::-moz-range-thumb {
+    background: rgba(72, 74, 82, 0.96) !important;
+    border-color: rgba(120, 122, 132, 0.55) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+}
+
+input[type="range"].glass-range::-moz-range-track {
+    background: transparent;
+    height: 4px;
+    border-radius: 999px;
+}
+
+/* ---- Toggle switch ---- */
+.switch {
+    position: relative;
+    display: block;
+    width: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+    height: 28px;
+    min-height: 28px;
+    margin: 0 !important;
+    flex: 0 0 50px !important;
+    overflow: visible;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch .track {
+    position: absolute;
+    inset: 0;
+    background: rgba(120, 120, 128, 0.24);
+    border-radius: 999px;
+    transition: background-color 0.25s var(--ease-out);
+}
+
+[data-theme="dark"] .switch .track {
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.switch .track::before {
+    content: "";
+    position: absolute;
+    height: 24px;
+    width: 24px;
+    left: 2px;
+    top: 2px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 30% 25%, #ffffff, #f0f0f0);
+    box-shadow:
+        0 3px 8px rgba(0, 0, 0, 0.22),
+        0 1px 1px rgba(0, 0, 0, 0.16);
+    transition: transform 0.22s var(--ease-liquid), width 0.18s var(--ease-out);
+}
+
+.switch input:checked + .track {
+    background: #34c759;
+}
+
+.switch input:checked + .track::before {
+    transform: translateX(22px);
+}
+
+/* Liquid stretch: while the switch is being pressed, the knob elongates toward the direction it would travel (like real iOS */
+.switch:active .track::before {
+    width: 30px;
+}
+
+.switch:active input:checked + .track::before {
+    transform: translateX(14px);
+}
+
+/* ---- Segmented control (sliding indicator, driven by :has()) ---- */
+.segmented {
+    position: relative;
+    display: flex;
+    width: 100%;
+    min-height: 36px;
+    padding: 3px;
+    border-radius: 999px;
+    overflow: hidden;
+    isolation: isolate;
+    touch-action: none;
+    user-select: none;
+    border: 1px solid rgba(255,255,255,.64);
+    background: linear-gradient(180deg, rgba(255,255,255,.3), rgba(156,160,174,.16));
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.76), inset 0 -1px 2px rgba(0,0,0,.12), 0 5px 14px rgba(20,24,34,.1);
+}
+
+[data-theme="dark"] .segmented {
+    border-color: rgba(255,255,255,.34);
+    background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.035));
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.22), inset 0 -1px 2px rgba(0,0,0,.4), 0 5px 14px rgba(0,0,0,.2);
+}
+
+.segmented::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(255,255,255,.2), transparent 38%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.segmented-indicator {
+    /* Both selections are fully inset and separated at the midpoint. */
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    left: 3px;
+    right: calc(50% + 2px);
+    /* The shorthand alone is enough - nothing else in this file sets a longhand/logical corner radius on this element */
+    border-radius: 999px !important;
+    background:
+        radial-gradient(ellipse 80% 46% at 32% 0%, rgba(255,255,255,.76), transparent 72%),
+        linear-gradient(145deg, rgba(255,255,255,.64), rgba(214,216,225,.43));
+    border: 1px solid rgba(255,255,255,.88);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.9), inset 0 -1px 1px rgba(117,122,140,.18), 0 4px 10px rgba(0, 0, 0, 0.16);
+    transition: left 0.42s cubic-bezier(.22, 1.15, .36, 1), right 0.42s cubic-bezier(.22, 1.15, .36, 1);
+}
+
+[data-theme="dark"] .segmented-indicator {
+    background:
+        radial-gradient(ellipse 80% 46% at 32% 0%, rgba(255,255,255,.3), transparent 72%),
+        linear-gradient(145deg, rgba(255,255,255,.23), rgba(118,124,143,.26));
+    border-color: rgba(255,255,255,.46);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.3), inset 0 -1px 1px rgba(0,0,0,.24), 0 5px 12px rgba(0,0,0,.32);
+}
+
+.segmented:has(button[data-contrast-option="high"].is-selected) .segmented-indicator {
+    left: calc(50% + 2px);
+    right: 3px;
+}
+
+@keyframes segmented-morph {
+    0% {
+        transform: scale(1);
+    }
+    45% {
+        transform: scale(1.06, 1.22);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.segmented-indicator.is-morphing {
+    animation: segmented-morph 0.32s var(--ease-out);
+}
+
+/* A grabbed selector behaves like a clear magnifying lens rather than a flat tab: it grows slightly, brightens */
+.segmented.is-dragging .segmented-indicator {
+    transform: scale(1.075, 1.16);
+    background: rgba(255,255,255,.14);
+    backdrop-filter: brightness(1.24) saturate(1.18);
+    -webkit-backdrop-filter: brightness(1.24) saturate(1.18);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.96), inset 0 -1px 1px rgba(90,96,116,.16), 0 8px 18px rgba(0,0,0,.2);
+}
+
+[data-theme="dark"] .segmented.is-dragging .segmented-indicator {
+    background: rgba(255,255,255,.1);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.58), inset 0 -1px 1px rgba(0,0,0,.28), 0 8px 18px rgba(0,0,0,.42);
+}
+
+.segmented button {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    border: none !important;
+    background: transparent !important;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 999px;
+    cursor: pointer;
+    color: var(--ui-muted) !important;
+    transition: color 0.2s var(--ease-out);
+}
+
+.segmented button.is-selected {
+    color: #111 !important;
+    text-shadow: 0 1px rgba(255,255,255,.35);
+}
+
+[data-theme="dark"] .segmented button.is-selected {
+    color: #fff !important;
+    text-shadow: 0 1px rgba(0,0,0,.42);
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .fab {
+        right: 1rem;
+        bottom: 1rem;
+    }
+
+    .settings-panel {
+        --fab-oy: -32px;
+        right: 1rem;
+        bottom: 4.75rem;
+        width: calc(100vw - 2rem);
+    }
+
+    footer.glass,
+    footer.glass.container {
+        margin: 2rem 15px 15px;
+    }
+}
+
+
+/* Pen buttons - 1:1 port of Petr Knoll's glass button (codepen.io/Petr-Knoll/pen/QwWLZdx). */
+@property --angle-2 {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: -45deg;
+}
+
+:root {
+  --anim--hover-time: 400ms;
+  --anim--hover-ease: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.button-wrap {
+  position: relative;
+  z-index: 2;
+  border-radius: 999vw;
+  background: transparent;
+  pointer-events: none;
+  font-size: 14.8px;
+  transition: all var(--anim--hover-time) var(--anim--hover-ease);
+}
+
+/* Ported from the CodePen along with the rest of the button structure */
+.button-shadow {
+  display: none;
+}
+
+.button-shadow-disabled {
+  --shadow-cuttoff-fix: 2em;
+  position: absolute;
+  width: calc(100% + var(--shadow-cuttoff-fix));
+  height: calc(100% + var(--shadow-cuttoff-fix));
+  top: calc(0% - var(--shadow-cuttoff-fix) / 2);
+  left: calc(0% - var(--shadow-cuttoff-fix) / 2);
+  filter: blur(clamp(2px, 0.125em, 12px));
+  -webkit-filter: blur(clamp(2px, 0.125em, 12px));
+  overflow: visible;
+  pointer-events: none;
+}
+
+.button-shadow::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: 999vw;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.1));
+  width: calc(100% - var(--shadow-cuttoff-fix) - 0.25em);
+  height: calc(100% - var(--shadow-cuttoff-fix) - 0.25em);
+  top: calc(var(--shadow-cuttoff-fix) - 0.5em);
+  left: calc(var(--shadow-cuttoff-fix) - 0.875em);
+  padding: 0.125em;
+  box-sizing: border-box;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  transition: all var(--anim--hover-time) var(--anim--hover-ease);
+  overflow: visible;
+  opacity: 1;
+}
+
+.pen-btn {
+  --border-width: clamp(1px, 0.0625em, 4px);
+  all: unset;
+  display: block;
+  cursor: pointer;
+  position: relative;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  pointer-events: auto;
+  z-index: 3;
+  background: linear-gradient(-75deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+  border-radius: 999vw;
+  box-shadow: inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
+    inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
+    0 0.25em 0.125em -0.125em rgba(0, 0, 0, 0.2),
+    0 0 0.1em 0.25em inset rgba(255, 255, 255, 0.2),
+    0 0 0 0 rgba(255, 255, 255, 1);
+  backdrop-filter: blur(clamp(1px, 0.125em, 4px));
+  -webkit-backdrop-filter: blur(clamp(1px, 0.125em, 4px));
+  transition: all var(--anim--hover-time) var(--anim--hover-ease);
+}
+
+.pen-btn[hidden] { display: none !important; }
+
+/* Beat Pico's button/link hover states (background, underline). */
+.pen-btn:hover,
+.pen-btn:focus,
+.pen-btn:active {
+  background-color: transparent !important;
+  text-decoration: none;
+}
+
+.pen-btn:hover {
+  transform: scale(0.975);
+  backdrop-filter: blur(0.01em);
+  -webkit-backdrop-filter: blur(0.01em);
+  box-shadow: inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
+    inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
+    0 0.15em 0.05em -0.1em rgba(0, 0, 0, 0.25),
+    0 0 0.05em 0.1em inset rgba(255, 255, 255, 0.5),
+    0 0 0 0 rgba(255, 255, 255, 1);
+}
+
+.pen-btn > span {
+  position: relative;
+  display: block;
+  user-select: none;
+  -webkit-user-select: none;
+  font-family: inherit;
+  letter-spacing: -0.05em;
+  font-weight: 500;
+  font-size: 1em;
+  color: rgba(50, 50, 50, 1);
+  text-shadow: 0em 0.25em 0.05em rgba(0, 0, 0, 0.1);
+  transition: all var(--anim--hover-time) var(--anim--hover-ease);
+  padding-inline: 1.5em;
+  padding-block: 0.875em;
+}
+
+[data-theme="dark"] .pen-btn > span {
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0em 0.25em 0.05em rgba(0, 0, 0, 0.35);
+}
+
+.pen-btn:hover > span {
+  text-shadow: 0.025em 0.025em 0.025em rgba(0, 0, 0, 0.12);
+}
+
+.pen-btn > span::after {
+  content: "";
+  display: block;
+  position: absolute;
+  z-index: 1;
+  width: calc(100% - var(--border-width));
+  height: calc(100% - var(--border-width));
+  top: calc(0% + var(--border-width) / 2);
+  left: calc(0% + var(--border-width) / 2);
+  box-sizing: border-box;
+  border-radius: 999vw;
+  overflow: clip;
+  background: linear-gradient(var(--angle-2), rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.5) 40% 50%, rgba(255, 255, 255, 0) 55%);
+  z-index: 3;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  background-size: 200% 200%;
+  background-position: 0% 50%;
+  background-repeat: no-repeat;
+  transition: background-position calc(var(--anim--hover-time) * 1.25) var(--anim--hover-ease),
+    --angle-2 calc(var(--anim--hover-time) * 1.25) var(--anim--hover-ease);
+}
+
+.pen-btn:hover > span::after { background-position: 25% 50%; }
+.pen-btn:active > span::after { background-position: 50% 15%; --angle-2: -15deg; }
+
+@media (hover: none) and (pointer: coarse) {
+  .pen-btn > span::after,
+  .pen-btn:active > span::after { --angle-2: -45deg; }
+}
+
+.pen-btn::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border-radius: 999vw;
+  width: calc(100% + var(--border-width));
+  height: calc(100% + var(--border-width));
+  top: calc(0% - var(--border-width) / 2);
+  left: calc(0% - var(--border-width) / 2);
+  padding: var(--border-width);
+  box-sizing: border-box;
+  background: conic-gradient(from var(--angle-1) at 50% 50%, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0) 5% 40%, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 0) 60% 95%, rgba(0, 0, 0, 0.5)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5));
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  transition: all var(--anim--hover-time) var(--anim--hover-ease), --angle-1 500ms ease;
+  box-shadow: inset 0 0 0 calc(var(--border-width) / 2) rgba(255, 255, 255, 0.5);
+}
+
+.pen-btn:hover::after { --angle-1: -125deg; }
+.pen-btn:active::after { --angle-1: -75deg; }
+
+@media (hover: none) and (pointer: coarse) {
+  .pen-btn::after,
+  .pen-btn:hover::after,
+  .pen-btn:active::after { --angle-1: -75deg; }
+}
+
+.button-wrap:has(.pen-btn:hover) .button-shadow {
+  filter: blur(clamp(2px, 0.0625em, 6px));
+  -webkit-filter: blur(clamp(2px, 0.0625em, 6px));
+  transition: filter var(--anim--hover-time) var(--anim--hover-ease);
+}
+
+.button-wrap:has(.pen-btn:hover) .button-shadow::after {
+  top: calc(var(--shadow-cuttoff-fix) - 0.875em);
+  opacity: 1;
+}
+
+.button-wrap:has(.pen-btn:active) { transform: rotate3d(1, 0, 0, 25deg); }
+
+.button-wrap:has(.pen-btn:active) .pen-btn {
+  box-shadow: inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
+    inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
+    0 0.125em 0.125em -0.125em rgba(0, 0, 0, 0.2),
+    0 0 0.1em 0.25em inset rgba(255, 255, 255, 0.2),
+    0 0.225em 0.05em 0 rgba(0, 0, 0, 0.05),
+    0 0.25em 0 0 rgba(255, 255, 255, 0.75),
+    inset 0 0.25em 0.05em 0 rgba(0, 0, 0, 0.15);
+}
+
+.button-wrap:has(.pen-btn:active) .button-shadow {
+  filter: blur(clamp(2px, 0.125em, 12px));
+  -webkit-filter: blur(clamp(2px, 0.125em, 12px));
+}
+
+.button-wrap:has(.pen-btn:active) .button-shadow::after {
+  top: calc(var(--shadow-cuttoff-fix) - 0.5em);
+  opacity: 0.75;
+}
+
+.button-wrap:has(.pen-btn:active) .pen-btn > span {
+  text-shadow: 0.025em 0.25em 0.05em rgba(0, 0, 0, 0.12);
+}
+
+/* ---- Site-specific sizing (icon discs, footer pill, FAB, socials) ---- */
+
+/* On closer look at the iOS 26/macOS reference, the CIRCULAR buttons catch their dark rim on the left/right sides (not */
+/* angle-1 is registered with inherits:false, so setting it on .pen-btn itself does NOTHING for its ::after (a pseudo-element */
+.pen-icon .pen-btn::after {
+  --angle-1: 90deg;
+}
+
+.pen-icon .pen-btn > span {
+  width: 2.2em;
+  height: 2.2em;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+
+.pen-btn svg {
+  display: block;
+  width: 1.15em;
+  height: 1.15em;
+}
+
+.pen-btn svg:not([fill]) { fill: currentColor; }
+.socials .pen-btn svg *,
+.pen-btn svg g { fill: currentColor; }
+
+.pen-pill { font-size: 14px; }
+
+.pen-pill .pen-btn > span {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding-inline: 1.1em;
+  padding-block: 0.6em;
+}
+
+.pen-pill .pen-btn svg { width: 1.1em; height: 1.1em; }
+
+.pen-pill .pen-btn small { font-size: 0.95em; color: inherit; }
+
+.socials .pen-icon { font-size: 13.6px; }
+
+footer.glass ol.socials { gap: 0.9rem; }
+
+.header-fixed .icon-toolbar > li { display: flex; align-items: center; }
+
+.fab-wrap {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 400;
+}
+
+/* Neutralise the old .fab button rules now that the wrapper positions it. */
+.button-wrap .pen-btn.fab {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  z-index: 3;
+  width: auto;
+  height: auto;
+  padding: 0;
+  transform: none;
+}
+
+.button-wrap .pen-btn.fab:hover { transform: scale(0.975); }
+/* Sliders glyph morphs into an X: top and middle bars cross diagonally, the bottom bar and the knobs shrink away. */
+.pen-btn.fab svg { transition: transform 0.5s cubic-bezier(0.34, 1.3, 0.64, 1); }
+
+.pen-btn.fab svg line,
+.pen-btn.fab svg circle {
+    transform-box: view-box;
+    transform-origin: 12px 12px;
+    transition: transform 0.5s cubic-bezier(0.34, 1.3, 0.64, 1), opacity 0.25s ease;
+}
+
+.pen-btn.fab.is-active .fab-l1 { transform: rotate(45deg) translateY(6px); }
+.pen-btn.fab.is-active .fab-l2 { transform: rotate(-45deg); }
+.pen-btn.fab.is-active .fab-l3 { transform: scaleX(0); opacity: 0; }
+.pen-btn.fab.is-active .fab-dot { transform: scale(0); opacity: 0; }
+.pen-btn.fab .fab-dot { transform-box: fill-box; transform-origin: center; }
+.pen-btn.fab.is-active svg { transform: rotate(90deg); }
+
+@media (prefers-reduced-motion: reduce) {
+    .pen-btn.fab svg { transition: transform 0.5s cubic-bezier(0.34, 1.3, 0.64, 1) !important; }
+    .pen-btn.fab svg line,
+    .pen-btn.fab svg circle {
+        transition: transform 0.5s cubic-bezier(0.34, 1.3, 0.64, 1), opacity 0.25s ease !important;
+    }
+}
+
+/* ---- Fixes after first render check ---- */
+/* Some generic button rule was still adding padding/margins to <button> (the sun/moon disc measured 49x45 instead of */
+.button-wrap .pen-btn {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  width: auto;
+  height: auto;
+}
+
+/* Footer pill hugs its content instead of stretching across the footer. */
+.button-wrap.pen-pill { display: inline-block; width: fit-content; }
+
+/* Keep the LinkedIn svg's transparent backing circle transparent. */
+.socials .pen-btn svg path[fill="#ffffff00"] { fill: none; }
+
+/* One glass recipe for every large surface (header, footer, settings panel, language card */
+[data-theme="light"] footer.glass,
+[data-theme="light"] .settings-panel.glass {
+    border: 0;
+    /* Frosted white with a faint cool tint reads as glass; mid-gray reads as a dull plastic panel. */
+    background: rgba(246, 249, 255, calc(0.66 - var(--glass-clarity) * 0.0025 + var(--glass-contrast-boost)));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(60, 70, 100, 0.1), 0 10px 30px rgba(40, 55, 95, 0.12);
+}
+
+[data-theme="dark"] footer.glass,
+[data-theme="dark"] .settings-panel.glass {
+    border: 0;
+    background: rgba(11, 13, 18, calc(0.56 - var(--glass-clarity) * 0.0026 + var(--glass-contrast-boost)));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 12px 28px rgba(0, 0, 0, 0.24);
+}
+
+/* Header: trying the real iOS/macOS Liquid Glass edge here first, before the same treatment goes on the footer/panel. */
+[data-theme="light"] .header-fixed.glass {
+    border: 0;
+    background: rgba(246, 249, 255, calc(0.66 - var(--glass-clarity) * 0.0025 + var(--glass-contrast-boost)));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 10px 30px rgba(40, 55, 95, 0.12);
+}
+
+[data-theme="dark"] .header-fixed.glass {
+    border: 0;
+    background: rgba(11, 13, 18, calc(0.56 - var(--glass-clarity) * 0.0026 + var(--glass-contrast-boost)));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 12px 28px rgba(0, 0, 0, 0.24);
+}
+
+#language-selector,
+details > summary[role="button"] {
+    background: rgba(255, 255, 255, 0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.85) !important;
+    border-radius: 18px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+    -webkit-backdrop-filter: blur(3px) saturate(1.1);
+    backdrop-filter: blur(3px) saturate(1.1);
+}
+
+[data-theme="dark"] #language-selector,
+[data-theme="dark"] details > summary[role="button"] {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+}
+
+/* Refraction on the pen buttons The pen's own backdrop blur moves to a ::before layer that also carries the SVG lens filter */
+.pen-btn,
+.pen-btn:hover {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.pen-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  /* The circular lens map produces a fisheye/"glass sphere" look - a bright equatorial highlight band across the whole disc - */
+  -webkit-backdrop-filter: blur(4px) saturate(1.1);
+  backdrop-filter: blur(4px) saturate(1.1);
+  overflow: hidden;
+  isolation: isolate;
+  pointer-events: none;
+}
+
+/* Feel & dark-mode tuning for the pen buttons The pen's effects are sized in em, so on 30-33px buttons they are only a pixel or two. */
+.pen-btn {
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.4s var(--anim--hover-ease),
+    background 0.4s var(--anim--hover-ease);
+}
+
+.pen-btn:hover {
+  transform: scale(0.92);
+}
+
+.button-wrap:has(.pen-btn:active) .pen-btn {
+  transform: scale(0.88);
+}
+
+.pen-btn > span::after {
+  background: linear-gradient(var(--angle-2), rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.95) 42% 50%, rgba(255, 255, 255, 0) 58%);
+  background-size: 250% 250%;
+  background-position: 0% 50%;
+  mix-blend-mode: normal;
+  opacity: 0.55;
+}
+
+.pen-btn:hover > span::after { background-position: 100% 50%; }
+
+/* Flat, minimal fill - matching the actual iOS/macOS Liquid Glass photos */
+[data-theme="light"] .pen-btn {
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: none;
+}
+
+[data-theme="light"] .pen-btn:hover {
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: none;
+}
+
+[data-theme="light"] .pen-btn::after {
+  background: conic-gradient(from var(--angle-1) at 50% 50%, rgba(40, 55, 90, 0.22), rgba(40, 55, 90, 0) 20% 30%, rgba(40, 55, 90, 0.22) 50%, rgba(40, 55, 90, 0) 70% 80%, rgba(40, 55, 90, 0.22)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4));
+}
+
+[data-theme="dark"] .pen-btn {
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: none;
+}
+
+[data-theme="dark"] .pen-btn:hover {
+  background: rgba(255, 255, 255, 0.11);
+  box-shadow: none;
+}
+
+[data-theme="dark"] .pen-btn::after {
+  background: conic-gradient(from var(--angle-1) at 50% 50%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.015) 20% 30%, rgba(255, 255, 255, 0.16) 50%, rgba(255, 255, 255, 0.015) 70% 80%, rgba(255, 255, 255, 0.16)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05));
+}
+
+[data-theme="dark"] .pen-btn > span::after { opacity: 0.15; }
+
+/* Pico zeroes every transition/animation under prefers-reduced-motion (`* { transition-duration: 0s !important }`) */
+@media (prefers-reduced-motion: reduce) {
+  .button-wrap .pen-btn {
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+      box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+      background 0.4s cubic-bezier(0.25, 1, 0.5, 1) !important;
+    transition-delay: 0s !important;
+  }
+
+  .button-wrap .pen-btn::after {
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1), --angle-1 0.5s ease !important;
+    transition-delay: 0s !important;
+  }
+
+  .button-wrap .pen-btn > span {
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1) !important;
+    transition-delay: 0s !important;
+  }
+
+  .button-wrap .pen-btn > span::after {
+    transition: background-position 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+      --angle-2 0.5s cubic-bezier(0.25, 1, 0.5, 1) !important;
+    transition-delay: 0s !important;
+  }
+
+  .button-wrap,
+  .button-wrap .button-shadow,
+  .button-wrap .button-shadow::after {
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1) !important;
+    transition-delay: 0s !important;
+  }
+}
+
+/* (superseded by the flat recipe above - Round 2/3 glossy-sphere iterations removed) */
+
+/* ---- Settings panel: pen close button + liquid glass contrast selector ---- */
+.settings-panel .pen-icon { font-size: 12.5px; }
+
+.settings-panel .button-wrap .pen-btn.close-btn {
+  width: auto;
+  height: auto;
+}
+
+/* Contrast selector: same recipe as the pen buttons - near-clear fill, soft rim ring that rotates on hover, calmer highlights. */
+.segmented {
+    border: 0 !important;
+    background: linear-gradient(-75deg, rgba(90, 105, 140, 0.06), rgba(255, 255, 255, 0.2), rgba(90, 105, 140, 0.06)) !important;
+    box-shadow: inset 0 0.125em 0.125em rgba(0, 0, 0, 0.04),
+        inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.22),
+        0 0 0.1em 0.25em inset rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="dark"] .segmented {
+    background: linear-gradient(-75deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015)) !important;
+    box-shadow: inset 0 0.125em 0.125em rgba(0, 0, 0, 0.25),
+        inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.04),
+        0 0 0.1em 0.25em inset rgba(255, 255, 255, 0.015) !important;
+}
+
+.segmented::before { display: none; }
+
+.segmented::after,
+.segmented-indicator::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    padding: 1px;
+    box-sizing: border-box;
+    pointer-events: none;
+    background: conic-gradient(from var(--angle-1) at 50% 50%, rgba(40, 55, 90, 0.3), rgba(40, 55, 90, 0) 5% 40%, rgba(40, 55, 90, 0.3) 50%, rgba(40, 55, 90, 0) 60% 95%, rgba(40, 55, 90, 0.3)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.35));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    transition: --angle-1 0.5s ease;
+}
+
+[data-theme="dark"] .segmented::after,
+[data-theme="dark"] .segmented-indicator::after {
+    background: conic-gradient(from var(--angle-1) at 50% 50%, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.02) 5% 40%, rgba(255, 255, 255, 0.24) 50%, rgba(255, 255, 255, 0.02) 60% 95%, rgba(255, 255, 255, 0.24)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05));
+}
+
+.segmented:hover::after,
+.segmented:hover .segmented-indicator::after { --angle-1: -125deg; }
+
+/* The sliding pill: a small glass bead with the same soft look. */
+.segmented-indicator {
+    border: 0 !important;
+    background: linear-gradient(-75deg, rgba(90, 105, 140, 0.1), rgba(255, 255, 255, 0.4), rgba(90, 105, 140, 0.1)) !important;
+    box-shadow: inset 0 0.125em 0.125em rgba(0, 0, 0, 0.04),
+        inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.25),
+        0 0.15em 0.1em -0.1em rgba(0, 0, 0, 0.14) !important;
+}
+
+[data-theme="dark"] .segmented-indicator {
+    background: linear-gradient(-75deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05)) !important;
+    box-shadow: inset 0 0.125em 0.125em rgba(0, 0, 0, 0.25),
+        inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.06),
+        0 0.15em 0.1em -0.1em rgba(0, 0, 0, 0.4) !important;
+}
+
+.segmented.is-dragging .segmented-indicator,
+[data-theme="dark"] .segmented.is-dragging .segmented-indicator {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+/* ---- "Read a poem": one glass container that springs open ---- */
+main details {
+    overflow: hidden;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    -webkit-backdrop-filter: blur(3px) saturate(1.1);
+    backdrop-filter: blur(3px) saturate(1.1);
+    margin: 0;
+}
+
+[data-theme="dark"] main details {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.16);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+/* The header row is just the top of the container now. */
+main details > summary[role="button"] {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+main details > summary[role="button"]:active {
+    transform: scale(0.985, 0.94);
+}
+
+main details > summary[role="button"]::after {
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+main details > blockquote {
+    margin: 0;
+    padding: 0.25rem 1.5rem 1.25rem;
+    border: 0;
+}
+
+/* ---- Contrast selector: real sliding + hover sheen ---- */
+.segmented-indicator {
+    overflow: hidden;
+    transition: left 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+        right 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+        background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease !important;
+}
+
+/* Moving right: the leading (right) edge runs ahead of the trailing (left) edge */
+.segmented:has(button[data-contrast-option="high"].is-selected) .segmented-indicator {
+    transition: right 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+        left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+        background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease !important;
+}
+
+.segmented-indicator::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(var(--angle-2, -45deg), rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.95) 42% 50%, rgba(255, 255, 255, 0) 58%);
+    background-size: 250% 250%;
+    background-position: 0% 50%;
+    background-repeat: no-repeat;
+    opacity: 0.4;
+    transition: background-position 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+[data-theme="dark"] .segmented-indicator::before { opacity: 0.22; }
+
+.segmented:hover .segmented-indicator::before { background-position: 100% 50%; }
+
+/* Keep these animations for users with "reduce motion" (Pico zeroes all transitions there); they are decorative and */
+@media (prefers-reduced-motion: reduce) {
+    .segmented .segmented-indicator {
+        transition: left 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+            right 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+            background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease !important;
+        transition-delay: 0s !important;
+    }
+
+    .segmented:has(button[data-contrast-option="high"].is-selected) .segmented-indicator {
+        transition: right 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+            left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+            background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease !important;
+    }
+
+    .segmented .segmented-indicator::before {
+        transition: background-position 0.8s cubic-bezier(0.25, 1, 0.5, 1) !important;
+        transition-delay: 0s !important;
+    }
+
+    .segmented::after,
+    .segmented .segmented-indicator::after {
+        transition: --angle-1 0.5s ease !important;
+        transition-delay: 0s !important;
+    }
+
+    .segmented button {
+        transition: color 0.2s ease !important;
+        transition-delay: 0s !important;
+    }
+}
+
+/* Pressing the header squashes the whole container, springing back on release. */
+main details {
+    transform-origin: 50% 0;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+main details:has(> summary:active) {
+    transform: scale(0.99, 0.965);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    main details {
+        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        transition-delay: 0s !important;
+    }
+}
+
+/* iOS 26/27 alignment pass 1. header rim: faint hairline, soft fade (was a hard ruled line) 2. dark surfaces: translucent */
+
+/* 1. header + footer rim (one shared recipe) */
+[data-theme="light"] .header-fixed.glass::after,
+[data-theme="light"] footer.glass::after {
+    background: radial-gradient(70% 100% at 50% 0%, rgba(25, 35, 65, 0.2), transparent 80%),
+        radial-gradient(70% 100% at 50% 100%, rgba(25, 35, 65, 0.14), transparent 80%);
+}
+
+[data-theme="dark"] .header-fixed.glass::after,
+[data-theme="dark"] footer.glass::after {
+    background: radial-gradient(70% 100% at 50% 0%, rgba(255, 255, 255, 0.16), transparent 80%),
+        radial-gradient(70% 100% at 50% 100%, rgba(255, 255, 255, 0.1), transparent 80%);
+}
+
+/* 2. dark surfaces: same translucent gray family as the cards */
+[data-theme="dark"] .header-fixed.glass,
+[data-theme="dark"] footer.glass,
+[data-theme="dark"] .settings-panel.glass {
+    background: rgba(70, 72, 82, calc(0.5 - var(--glass-clarity) * 0.002 + var(--glass-contrast-boost)));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* 3. segmented control */
+[data-theme="light"] .segmented {
+    background: rgba(255, 255, 255, 0.75) !important;
+    box-shadow: 0 6px 18px rgba(20, 30, 60, 0.08) !important;
+}
+
+[data-theme="dark"] .segmented {
+    background: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
+}
+
+[data-theme="light"] .segmented-indicator {
+    background: rgba(70, 76, 100, 0.13) !important;
+    box-shadow: inset 0 1px 2px rgba(20, 30, 60, 0.1) !important;
+}
+
+[data-theme="dark"] .segmented-indicator {
+    background: rgba(0, 0, 0, 0.5) !important;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+.segmented-indicator::before { opacity: 0.08; }
+[data-theme="dark"] .segmented-indicator::before { opacity: 0.05; }
+
+/* 4. background art: soft, not sharp-edged shapes */
+body::before {
+    filter: blur(1.5px);
+}
+
+/* 5. diffuse shadow under controls */
+[data-theme="light"] .pen-btn,
+[data-theme="light"] .pen-btn:hover {
+    box-shadow: 0 6px 18px rgba(20, 30, 60, 0.1);
+}
+
+[data-theme="dark"] .pen-btn,
+[data-theme="dark"] .pen-btn:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+/* ---- Round-button lens variants (see initLensVariant in app.js) ---- */
+html[data-lens="mine"] .pen-icon .pen-btn::before {
+  -webkit-backdrop-filter: var(--btn-lens, blur(4px) saturate(1.1));
+  backdrop-filter: var(--btn-lens, blur(4px) saturate(1.1));
+}
+
+/* Custom lens variant: iOS 27 edge - a darkened outer rim for depth plus brighter specular highlights on the light side. */
+html[data-lens="mine"] .pen-icon .pen-btn::before {
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.3),
+    inset 2px 3px 3px -2px rgba(255, 255, 255, 0.95),
+    inset -1px -2px 2px -1.5px rgba(255, 255, 255, 0.4);
+}
+
+/* No press shadow: the CodePen's pressed state stacks dark inset shadows and a text shadow, which iOS doesn't do. */
+[data-theme="light"] .button-wrap:has(.pen-btn:active) .pen-btn {
+  box-shadow: 0 6px 18px rgba(20, 30, 60, 0.1);
+}
+
+[data-theme="dark"] .button-wrap:has(.pen-btn:active) .pen-btn {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme] .button-wrap:has(.pen-btn:active) .pen-btn > span {
+  text-shadow: none;
+}
+
+/* ---- Make the refraction easier to see ---- */
+/* 1. bigger round buttons (~20% larger; icons and lens scale with them) */
+.pen-icon { font-size: 18px; }
+.socials .pen-icon { font-size: 16px; }
+.settings-panel .pen-icon { font-size: 14px; }
+
+/* 2. lighter header/footer tint so the art behind the buttons shows through */
+[data-theme="light"] .header-fixed.glass,
+[data-theme="light"] footer.glass {
+  background: rgba(246, 249, 255, calc(0.42 - var(--glass-clarity) * 0.0018 + var(--glass-contrast-boost)));
+}
+
+[data-theme="dark"] .header-fixed.glass,
+[data-theme="dark"] footer.glass {
+  background: rgba(70, 72, 82, calc(0.34 - var(--glass-clarity) * 0.0015 + var(--glass-contrast-boost)));
+}
+
+/* "Buy me a coffee" pill gets the same lens + iOS 27 edge as the round buttons (the lens map is built from the pill's real */
+html[data-lens="mine"] .pen-pill .pen-btn::before {
+  -webkit-backdrop-filter: var(--btn-lens, blur(4px) saturate(1.1));
+  backdrop-filter: var(--btn-lens, blur(4px) saturate(1.1));
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.3),
+    inset 2px 3px 3px -2px rgba(255, 255, 255, 0.95),
+    inset -1px -2px 2px -1.5px rgba(255, 255, 255, 0.4);
+}
+
+.pen-btn > span,
+.pen-btn:hover > span {
+  text-shadow: none;
+}
+
+[data-theme] .pen-pill .pen-btn > span::after { opacity: 0; }
+
+/* The dark-mode text shadow rule ([data-theme="dark"] .pen-btn > span) was outranking the plain reset above */
+[data-theme] .pen-btn > span,
+[data-theme] .pen-btn:hover > span,
+[data-theme] .pen-btn:active > span {
+  text-shadow: none;
+}
+
+/* Bolder name in the header (Inter 800 is now requested with the font). */
+.header-fixed hgroup h1 {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+/* Language selector: the contrast segmented control, three-way. */
+#language-selector,
+[data-theme="dark"] #language-selector {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    padding: 0;
+    margin: 0;
+}
+
+.lang-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.9rem;
+}
+
+.segmented.lang-segmented {
+    --seg-i: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: min(100%, 21rem);
+    margin: 0;
+    touch-action: manipulation;
+}
+
+.lang-segmented .segmented-indicator {
+    left: calc(3px + (100% - 6px) * var(--seg-i) / 3 + 1px);
+    right: calc(3px + (100% - 6px) * (2 - var(--seg-i)) / 3 + 1px);
+}
+
+.lang-segmented[data-dir="right"] .segmented-indicator {
+    transition: right 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+        left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+        background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease !important;
+}
+
+.lang-segmented a {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    text-decoration: none !important;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 999px;
+    background: transparent !important;
+    color: var(--ui-muted) !important;
+    transition: color 0.2s var(--ease-out);
+}
+
+.lang-segmented a.is-selected { color: #111 !important; text-shadow: 0 1px rgba(255,255,255,.35); }
+[data-theme="dark"] .lang-segmented a.is-selected { color: #fff !important; text-shadow: 0 1px rgba(0,0,0,.42); }
+
+@media (prefers-reduced-motion: reduce) {
+    .lang-segmented .segmented-indicator {
+        transition: left 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+            right 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+            background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease !important;
+    }
+    .lang-segmented[data-dir="right"] .segmented-indicator {
+        transition: right 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+            left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+            background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease !important;
+    }
+    .lang-segmented a { transition: color 0.2s ease !important; }
+}
+
+/* Lenses that must see the real page. */
+.settings-panel.glass::before {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    -webkit-backdrop-filter: var(--lens-backdrop, blur(8px) saturate(1.15));
+    backdrop-filter: var(--lens-backdrop, blur(8px) saturate(1.15));
+}
+
+.segmented::before {
+    display: block;
+    inset: 0;
+    z-index: 0;
+    background: none;
+    -webkit-backdrop-filter: var(--seg-lens, blur(2px));
+    backdrop-filter: var(--seg-lens, blur(2px));
+}
+
+.segmented-indicator {
+    -webkit-backdrop-filter: var(--seg-bead-lens, none);
+    backdrop-filter: var(--seg-bead-lens, none);
+}
+
+.segmented.is-dragging .segmented-indicator,
+[data-theme="dark"] .segmented.is-dragging .segmented-indicator {
+    -webkit-backdrop-filter: var(--seg-bead-lens, none) brightness(1.15);
+    backdrop-filter: var(--seg-bead-lens, none) brightness(1.15);
+}
+
+/* clearer bead so the refraction shows through its fill */
+.segmented-indicator {
+    background: linear-gradient(-75deg, rgba(90, 105, 140, 0.05), rgba(255, 255, 255, 0.16), rgba(90, 105, 140, 0.05)) !important;
+}
+
+[data-theme="dark"] .segmented-indicator {
+    background: linear-gradient(-75deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)) !important;
+}
+
+/* "Read a poem" open state: a single sheet, no title row. */
+main details { position: relative; }
+
+main details > summary[role="button"] {
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.38s ease 0.14s !important;
+}
+
+main details.poem-open > summary[role="button"] {
+    height: 0;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.16s ease !important;
+}
+
+main details.poem-open > blockquote {
+    padding: 1.4rem 4rem 1.25rem 1.5rem;
+}
+
+main details > .poem-close {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.9rem;
+    z-index: 3;
+    font-size: 15px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    main details > summary[role="button"] {
+        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.38s ease 0.14s !important;
+    }
+    main details.poem-open > summary[role="button"] { transition: opacity 0.16s ease !important; }
+}
+
+/* Selector edges = the pill-button recipe (see .pen-pill above): a 1px dark rim plus soft specular lines */
+.segmented {
+    box-shadow: none !important;
+}
+
+.segmented::before {
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.3),
+        inset 2px 3px 3px -2px rgba(255, 255, 255, 0.95),
+        inset -1px -2px 2px -1.5px rgba(255, 255, 255, 0.4);
+}
+
+[data-theme="dark"] .segmented::before {
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.45),
+        inset 2px 3px 3px -2px rgba(255, 255, 255, 0.5),
+        inset -1px -2px 2px -1.5px rgba(255, 255, 255, 0.2);
+}
+
+.segmented-indicator,
+[data-theme="dark"] .segmented-indicator,
+.segmented.is-dragging .segmented-indicator,
+[data-theme="dark"] .segmented.is-dragging .segmented-indicator {
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.3),
+        inset 2px 3px 3px -2px rgba(255, 255, 255, 0.95),
+        inset -1px -2px 2px -1.5px rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Narrow screens: the socials no longer float in the corner (they landed on top of the wrapped footer text); they */
+@media (max-width: 640px) {
+    footer.glass ol.socials {
+        position: static;
+        display: flex;
+        margin-top: 0;
+    }
+
+    footer.glass .grid { row-gap: 0.75rem; }
+}
+
+/* Readability text column capped to a comfortable line length (~70-80 characters) secondary text darkened/lightened to clear */
+main > .container {
+    max-width: 66rem;
+}
+
+:root[data-theme="light"] { --pico-muted-color: #566073; }
+:root[data-theme="dark"] { --pico-muted-color: #a9b2c3; }
+
+/* Language selector label: a mini caption above the control's top-left. */
+.lang-row {
+    flex-direction: column;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    gap: 0.4rem;
+}
+
+.lang-row > small {
+    margin-left: 0.9rem;
+    font-size: 0.64rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    line-height: 1;
+    color: var(--pico-muted-color);
+}
+
+/* Language selector in the header (compact) / settings panel (narrow) */
+.lang-row { flex-direction: row; align-items: center; }
+
+/* header: just the control, labels shortened to EN / ES / TL; the label text stays in the DOM (translated) for */
+.header-fixed .lang-row > small {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.header-fixed .segmented.lang-segmented {
+    width: 17rem;
+    min-height: 32px;
+}
+
+.header-fixed .lang-segmented a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+/* narrow screens: the selector sits at the top of the page content with its mini caption above it */
+main .lang-row {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+#lang-slot:not(:empty) { margin: 0.9rem 0 0.4rem; }
+
+@media (max-width: 860px) {
+    .lang-li,
+    .lang-li + li { display: none; }
+}
+
+/* Intro lead + call-to-action links */
+main p[data-translationkey="p-intro"] {
+    font-size: 1.3rem;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    color: var(--pico-color);
+    margin-bottom: 1.6rem;
+}
+
+/* Touch targets (>= 44px) on touch screens */
+@media (pointer: coarse) {
+    .pen-icon,
+    .socials .pen-icon,
+    .settings-panel .pen-icon { font-size: 20px; }
+
+    .header-fixed .segmented.lang-segmented,
+    .segmented { min-height: 44px; }
+}
+
+/* Reduce motion (settings panel switch): decorative motion off */
+html[data-motion="reduced"] *,
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+}
+
+/* labels centred in the pill at any height (touch screens make it 44px) */
+.lang-segmented a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+}
+
+/* Background theme picker (settings panel) */
+html:not([data-bg="glyphs"]) body::before { filter: none; }
+
+.settings-panel { --panel-max: min(720px, calc(100vh - 7.75rem)); --panel-max: min(720px, calc(100dvh - 7.75rem)); max-height: var(--panel-max); }
+
+.bg-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.7rem 0.6rem;
+    margin-top: 0.15rem;
+}
+
+.bg-tile {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    cursor: pointer;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.bg-tile:focus-visible .bg-thumb { outline: 2px solid var(--pico-primary, #0a84ff); outline-offset: 2px; }
+
+.bg-thumb {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 3;
+    border-radius: 14px;
+    overflow: hidden;
+    /* the same rim recipe as the pill buttons: dark hairline plus soft specular edges */
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.3),
+        inset 2px 3px 3px -2px rgba(255, 255, 255, 0.95),
+        inset -1px -2px 2px -1.5px rgba(255, 255, 255, 0.4);
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+[data-theme="dark"] .bg-thumb {
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.5),
+        inset 2px 3px 3px -2px rgba(255, 255, 255, 0.5),
+        inset -1px -2px 2px -1.5px rgba(255, 255, 255, 0.2);
+}
+
+/* glass sheen across the corner */
+.bg-thumb::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 38%);
+}
+
+.bg-tile:hover .bg-thumb { transform: scale(0.97); }
+.bg-tile:active .bg-thumb { transform: scale(0.94); }
+
+.bg-name {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--ui-muted);
+    transition: color 0.2s ease;
+}
+
+.bg-tile.is-selected .bg-name { color: var(--ui-text); font-weight: 600; }
+
+.bg-tile.is-selected .bg-thumb {
+    outline: 2px solid #0a84ff;
+    outline-offset: 2px;
+}
+
+/* selected: a small glass check bead in the corner */
+.bg-tile.is-selected .bg-thumb::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    right: 6px;
+    top: 6px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #0a84ff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 11px no-repeat;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+/* page colour for the picker thumbnails (buttons redefine --pico-background-color) */
+:root[data-theme] { --lens-page-bg: var(--pico-background-color, #fff); }
+
+/* Color sliders (two hues, cool range only: green to blue) */
+.hue-preview {
+    height: 12px;
+    border-radius: 999px;
+    margin: 0.2rem 0 0.7rem;
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.25),
+        inset 1px 2px 2px -1px rgba(255, 255, 255, 0.7);
+    transition: opacity 0.3s ease;
+}
+
+.hue-preview.is-auto { opacity: 0.4; }
+
+[data-theme] input[type="range"].hue-range {
+    height: 8px;
+    background: linear-gradient(90deg,
+        hsl(135, 70%, 42%), hsl(165, 72%, 40%), hsl(195, 75%, 42%), hsl(225, 75%, 44%), hsl(245, 70%, 46%));
+}
+
+.hue-range + .hue-range { margin-top: 0.95rem; }
+
+/* Auto is a real pill glass button (same lens, rim and hover as the rest) */
+.hue-auto-wrap { font-size: 10.5px; }
+.hue-auto-wrap[hidden] { display: none; }
+
+/* Pico paints its own grey track over the element, which hid the colour gradient; make it clear. */
+input[type="range"].hue-range::-webkit-slider-runnable-track { background: transparent; }
+input[type="range"].hue-range::-moz-range-track { background: transparent; }
+
+/* tighter panel so the extra rows fit; slim translucent scrollbar when they don't */
+.setting-row { padding: 0.7rem 0; }
+.bg-thumb { aspect-ratio: 16 / 10; }
+.hue-preview { height: 8px; margin: 0.1rem 0 0.55rem; }
+.hue-range + .hue-range { margin-top: 0.8rem; }
+.settings-panel {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(128, 128, 128, 0.4) transparent;
+}
+
+/* The panel itself no longer scrolls (its glass layer would scroll away and leave a ghost edge); an inner wrapper does. */
+.settings-panel {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-body {
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+    max-height: calc(var(--panel-max) - 2.75rem);
+    margin: 0 -0.6rem;
+    padding: 0 0.6rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(128, 128, 128, 0.4) transparent;
+}
+
+/* Dark mode edges: hairline specular, not a thick white halo. */
+html[data-theme="dark"] .pen-icon .pen-btn::before,
+html[data-theme="dark"] .pen-pill .pen-btn::before {
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+        inset 1px 1.5px 1px -1px rgba(255, 255, 255, 0.35),
+        inset -1px -1.5px 1px -1px rgba(255, 255, 255, 0.15);
+}
+
+/* the 1px ring: two bright arcs on opposite sides, a faint line elsewhere */
+html[data-theme="dark"] .pen-btn::after {
+    background: conic-gradient(from var(--angle-1) at 50% 50%,
+        rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.06) 6% 38%,
+        rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0.06) 62% 94%, rgba(255, 255, 255, 0.5));
+}
+
+html[data-theme="dark"] .segmented::before {
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+        inset 1px 1.5px 1px -1px rgba(255, 255, 255, 0.28),
+        inset -1px -1.5px 1px -1px rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="dark"] .segmented-indicator,
+html[data-theme="dark"] .segmented.is-dragging .segmented-indicator {
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+        inset 1px 1.5px 1px -1px rgba(255, 255, 255, 0.4),
+        inset -1px -1.5px 1px -1px rgba(255, 255, 255, 0.18) !important;
+}
+
+html[data-theme="dark"] .bg-thumb {
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+        inset 1px 1.5px 1px -1px rgba(255, 255, 255, 0.4),
+        inset -1px -1.5px 1px -1px rgba(255, 255, 255, 0.18);
+}
+
+
+/* The poem card is the same glass sheet as the header and footer: same fill (so the Glass clarity slider drives it too) */
+[data-theme="light"] main details {
+    background: rgba(246, 249, 255, calc(0.42 - var(--glass-clarity) * 0.0018 + var(--glass-contrast-boost)));
+    border: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 10px 30px rgba(40, 55, 95, 0.12);
+}
+
+[data-theme="dark"] main details {
+    background: rgba(70, 72, 82, calc(0.34 - var(--glass-clarity) * 0.0015 + var(--glass-contrast-boost)));
+    border: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+main details::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    padding: 1px;
+    box-sizing: border-box;
+    border-radius: inherit;
+    pointer-events: none;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+}
+
+[data-theme="light"] main details::after {
+    background: radial-gradient(70% 100% at 50% 0%, rgba(25, 35, 65, 0.2), transparent 80%),
+        radial-gradient(70% 100% at 50% 100%, rgba(25, 35, 65, 0.14), transparent 80%);
+}
+
+[data-theme="dark"] main details::after {
+    background: radial-gradient(70% 100% at 50% 0%, rgba(255, 255, 255, 0.16), transparent 80%),
+        radial-gradient(70% 100% at 50% 100%, rgba(255, 255, 255, 0.1), transparent 80%);
+}
+
+/* Display settings sheet: the same glass sheet as header, footer and poem (one hairline rim, no inner second edge */
+html[data-theme="light"] .settings-panel.glass {
+    background: rgba(246, 249, 255, calc(0.6 - var(--glass-clarity) * 0.0018 + var(--glass-contrast-boost)));
+    border: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 10px 30px rgba(40, 55, 95, 0.12);
+}
+
+html[data-theme="dark"] .settings-panel.glass {
+    background: rgba(70, 72, 82, calc(0.5 - var(--glass-clarity) * 0.0015 + var(--glass-contrast-boost)));
+    border: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.settings-panel.glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    padding: 1px;
+    box-sizing: border-box;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 1;
+    box-shadow: none;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+}
+
+html[data-theme="light"] .settings-panel.glass::after {
+    background: radial-gradient(70% 100% at 50% 0%, rgba(25, 35, 65, 0.2), transparent 80%),
+        radial-gradient(70% 100% at 50% 100%, rgba(25, 35, 65, 0.14), transparent 80%);
+}
+
+html[data-theme="dark"] .settings-panel.glass::after {
+    background: radial-gradient(70% 100% at 50% 0%, rgba(255, 255, 255, 0.16), transparent 80%),
+        radial-gradient(70% 100% at 50% 100%, rgba(255, 255, 255, 0.1), transparent 80%);
+}
+
+/* iOS-style controls: filled slider track, elongated knobs */
+html[data-theme] input[type="range"].glass-range:not(.hue-range) {
+    border: 0;
+    box-shadow: none;
+    background: linear-gradient(to right,
+        #0a84ff calc(18px + (100% - 36px) * var(--fillp, 0.5)),
+        rgba(120, 120, 128, 0.28) calc(18px + (100% - 36px) * var(--fillp, 0.5)));
+}
+
+html[data-theme="dark"] input[type="range"].glass-range:not(.hue-range) {
+    background: linear-gradient(to right,
+        #0a84ff calc(18px + (100% - 36px) * var(--fillp, 0.5)),
+        rgba(255, 255, 255, 0.2) calc(18px + (100% - 36px) * var(--fillp, 0.5)));
+}
+
+html[data-theme] input[type="range"].glass-range::-webkit-slider-thumb {
+    width: 36px;
+    height: 24px;
+    border-radius: 999px;
+    background: #fff !important;
+    border: 0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22), 0 0 0 0.5px rgba(0, 0, 0, 0.08) !important;
+}
+
+html[data-theme] input[type="range"].glass-range::-moz-range-thumb {
+    width: 36px;
+    height: 24px;
+    border-radius: 999px;
+    background: #fff !important;
+    border: 0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22), 0 0 0 0.5px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* switch: wider track, elongated white knob that stretches while pressed */
+.switch {
+    width: 58px !important;
+    min-width: 58px !important;
+    max-width: 58px !important;
+    flex: 0 0 58px !important;
+    height: 32px;
+    min-height: 32px;
+}
+
+.switch .track::before {
+    width: 40px;
+    height: 28px;
+    left: 2px;
+    top: 2px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22), 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+}
+
+.switch input:checked + .track::before { transform: translateX(14px); }
+.switch:active .track::before { width: 46px; }
+.switch:active input:checked + .track::before { transform: translateX(8px); }
+
+/* Lucide icons are strokes: undo the old rule that filled every svg child */
+.socials .pen-btn svg.lucide,
+footer.glass ol.socials svg.lucide { width: 1.1em; height: 1.1em; }
+
+.socials .pen-btn svg.lucide *,
+footer.glass ol.socials svg.lucide * { fill: none; }
+
+/* Inline glass pills (CV / poem / contact links). */
+.inline-pill {
+    display: inline-block;
+    font-size: inherit;
+    margin: 0 0.1em;
+    vertical-align: baseline;
+}
+
+html .inline-pill .pen-btn > span,
+html[data-theme="dark"] .inline-pill .pen-btn > span {
+    padding-inline: 0.85em;
+    padding-block: 0.08em;
+    letter-spacing: 0;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--pico-primary);
+}
+
+/* Light / dark switch the sun and moon share one glass button; the icon turns into the other View Transitions: a circular */
+#sun > span { display: grid; place-items: center; }
+
+#sun .theme-icon {
+    grid-area: 1 / 1;
+    transition: transform 0.65s cubic-bezier(0.34, 1.35, 0.64, 1), opacity 0.35s ease;
+}
+
+html[data-theme="light"] #sun .theme-moon { opacity: 0; transform: rotate(-110deg) scale(0.3); }
+html[data-theme="light"] #sun .theme-sun  { opacity: 1; transform: none; }
+html[data-theme="dark"]  #sun .theme-sun  { opacity: 0; transform: rotate(110deg) scale(0.3); }
+html[data-theme="dark"]  #sun .theme-moon { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    #sun .theme-icon { transition: transform 0.65s cubic-bezier(0.34, 1.35, 0.64, 1), opacity 0.35s ease !important; }
+}
+
+::view-transition-group(root) { animation-duration: 0.75s; }
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+    animation: theme-reveal 0.75s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes theme-reveal {
+    from { clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 0)); }
+    to   { clip-path: circle(var(--vt-r, 150vmax) at var(--vt-x, 50%) var(--vt-y, 0)); }
+}
+
+/* Switch knob = slider knob (36x24 pill); track hugs it with an even 2px inset */
+.switch {
+    width: 56px !important;
+    min-width: 56px !important;
+    max-width: 56px !important;
+    flex: 0 0 56px !important;
+    height: 28px;
+    min-height: 28px;
+}
+
+.switch .track::before {
+    width: 36px;
+    height: 24px;
+    left: 2px;
+    top: 2px;
+}
+
+.switch input:checked + .track::before { transform: translateX(16px); }
+.switch:active .track::before { width: 42px; }
+.switch:active input:checked + .track::before { transform: translateX(10px); }
+
+/* Pico paints its own dark track over the slider element */
+html[data-theme] input[type="range"].glass-range::-webkit-slider-runnable-track {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    height: 8px;
+}
+html[data-theme] input[type="range"].glass-range::-moz-range-track {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Smoother theme reveal: longer, with a gentle ease in and out */
+::view-transition-group(root) { animation-duration: 1s; }
+
+::view-transition-new(root) {
+    animation: theme-reveal 1s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+::view-transition-old(root) {
+    animation: theme-old-fade 1s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+@keyframes theme-old-fade {
+    from { opacity: 1; }
+    to   { opacity: 0.55; }
+}
+
+#sun .theme-icon {
+    transition: transform 0.9s cubic-bezier(0.34, 1.25, 0.64, 1), opacity 0.5s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #sun .theme-icon { transition: transform 0.9s cubic-bezier(0.34, 1.25, 0.64, 1), opacity 0.5s ease !important; }
+}
+
+/* Smoothest pass: a longer, softer reveal whose edge is feathered instead of a hard circle, and a slower */
+@property --vt-reach {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+}
+
+::view-transition-group(root) { animation-duration: 0.7s; }
+
+::view-transition-new(root) {
+    -webkit-mask-image: radial-gradient(circle at var(--vt-x, 50%) var(--vt-y, 0),
+        #000 calc(var(--vt-reach) - 140px), transparent var(--vt-reach));
+    mask-image: radial-gradient(circle at var(--vt-x, 50%) var(--vt-y, 0),
+        #000 calc(var(--vt-reach) - 140px), transparent var(--vt-reach));
+    clip-path: none;
+    animation: theme-reveal-soft 0.7s cubic-bezier(0.45, 0, 0.2, 1) both;
+}
+
+::view-transition-old(root) {
+    animation: theme-old-fade 0.7s cubic-bezier(0.45, 0, 0.2, 1) both;
+}
+
+@keyframes theme-reveal-soft {
+    from { --vt-reach: 0px; }
+    to   { --vt-reach: calc(var(--vt-r, 1500px) + 160px); }
+}
+
+#sun .theme-icon {
+    transition: transform 0.6s cubic-bezier(0.3, 1.15, 0.5, 1), opacity 0.4s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #sun .theme-icon { transition: transform 0.6s cubic-bezier(0.3, 1.15, 0.5, 1), opacity 0.4s ease !important; }
+}
+
+/* One day: the sky drives light/dark, so the manual controls go away */
+html[data-bg="oneday"] .dark-row,
+html[data-bg="oneday"] li:has(.theme-toggle-wrap),
+html[data-bg="oneday"] li:has(+ li .theme-toggle-wrap) { display: none; }
+
+html[data-bg="oneday"] body::before { filter: none; }
+
+/* One day: live sky layer */
+@property --sky-top { syntax: "<color>"; inherits: true; initial-value: #7fb4f0; }
+@property --sky-bot { syntax: "<color>"; inherits: true; initial-value: #cfe8fb; }
+
+#oneday-layer {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    background: linear-gradient(180deg, var(--sky-top), var(--sky-bot));
+    transition: --sky-top 1s linear, --sky-bot 1s linear;
+}
+
+#oneday-layer .od-stars {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: var(--star-o, 0);
+    transition: opacity 1s linear;
+}
+
+#oneday-layer .od-glow {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 120vmax;
+    height: 120vmax;
+    margin: -60vmax 0 0 -60vmax;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, hsla(24, 90%, 58%, 0.4), transparent 70%);
+    transform: translate(var(--glow-x, 50vw), var(--glow-y, 50vh));
+    opacity: var(--glow-o, 0);
+    transition: transform 1s linear, opacity 1s linear;
+}
+
+#oneday-layer .od-body {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--od-size, 200px);
+    height: var(--od-size, 200px);
+    margin: calc(var(--od-size, 200px) / -2) 0 0 calc(var(--od-size, 200px) / -2);
+    transition: transform 1s linear, opacity 1s linear;
+}
+
+#oneday-layer .od-sun  { transform: translate(var(--sun-x, 50vw), var(--sun-y, 20vh));  opacity: var(--sun-o, 1); }
+#oneday-layer .od-moon { transform: translate(var(--moon-x, 50vw), var(--moon-y, 20vh)); opacity: var(--moon-o, 0); }
+#oneday-layer .od-body svg { width: 100%; height: 100%; overflow: visible; }
+
+#oneday-layer .od-sun-disc { fill: hsl(var(--sun-hue, 44), 100%, 78%); stroke: rgba(255, 255, 255, 0.9); stroke-width: 3; }
+#oneday-layer .od-rays { stroke: hsl(var(--sun-hue, 44), 100%, 74%); }
+
+/* first paint and the speed preview: no glide */
+#oneday-layer.od-jump,
+#oneday-layer.od-jump * { transition: none !important; }
+
+html[data-motion="reduced"] #oneday-layer,
+html[data-motion="reduced"] #oneday-layer * { transition: none !important; }
+
+/* daytime clouds: soft white shapes drifting across, fading out at dusk */
+#oneday-layer .od-clouds {
+    position: absolute;
+    inset: 0;
+    opacity: var(--cloud-o, 1);
+    transition: opacity 1s linear;
+}
+
+#oneday-layer .od-cloud {
+    position: absolute;
+    left: 0;
+    width: calc(var(--cs, 1) * 22vmin + 90px);
+    opacity: var(--op, 0.7);
+    animation: od-drift var(--dur, 160s) linear var(--del, 0s) infinite;
+}
+
+#oneday-layer .od-cloud svg { display: block; width: 100%; height: auto; }
+
+/* each cloud crosses the whole sky, entering and leaving off-screen */
+@keyframes od-drift {
+    from { transform: translateX(-40vw); }
+    to   { transform: translateX(115vw); }
+}
+
+/* Pico zeroes every animation under prefers-reduced-motion; the clouds are decorative and intentionally always on */
+@media (prefers-reduced-motion: reduce) {
+    #oneday-layer .od-cloud {
+        animation: od-drift var(--dur, 160s) linear var(--del, 0s) infinite !important;
+    }
+}
+
+html[data-motion="reduced"] #oneday-layer .od-cloud { animation: none !important; transform: translateX(var(--rest, 20vw)); }
+
+/* sun and moon glide for exactly one tick, on their own compositor layer */
+#oneday-layer .od-body {
+    transition: transform var(--od-dt, 1s) linear, opacity 1.4s ease-in-out;
+    will-change: transform, opacity;
+}
+
+#oneday-layer .od-sun  { transform: translate3d(var(--sun-x, 50vw), var(--sun-y, 20vh), 0); }
+#oneday-layer .od-moon { transform: translate3d(var(--moon-x, 50vw), var(--moon-y, 20vh), 0); }
+#oneday-layer .od-glow { transition: transform var(--od-dt, 1s) linear, opacity 1.4s ease-in-out; }
+
+/* nicer sun: gradient disc, soft corona, slowly turning tapered beams */
+#oneday-layer .od-sun-disc {
+    stroke: rgba(255, 255, 255, 0.45);
+    stroke-width: 1.2;
+    filter: drop-shadow(0 0 6px hsla(var(--sun-hue, 44), 100%, 70%, 0.8));
+}
+
+#oneday-layer .od-rays {
+    stroke: none;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: od-spin 90s linear infinite;
+}
+
+@keyframes od-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+    #oneday-layer .od-rays { animation: od-spin 90s linear infinite !important; }
+}
+
+html[data-motion="reduced"] #oneday-layer .od-rays { animation: none !important; }
+
+/* Selector track: clear glass (the lens layer shows the page through it). */
+html[data-theme="light"] .segmented { background: rgba(255, 255, 255, 0.22) !important; }
+html[data-theme="dark"]  .segmented { background: rgba(255, 255, 255, 0.07) !important; }
+html[data-theme="light"] .settings-panel .segmented { background: rgba(255, 255, 255, 0.45) !important; }
+html[data-theme="dark"]  .settings-panel .segmented { background: rgba(255, 255, 255, 0.1) !important; }
+
+/* One day tile: a sun (or moon, in the dark theme) with a cloud, and a Live chip */
+.bg-thumb-oneday { background: linear-gradient(180deg, #7fb4f0, #cfe8fb); }
+[data-theme="dark"] .bg-thumb-oneday { background: linear-gradient(180deg, #0a1030, #1c2c52); }
+
+.bg-thumb-oneday .od-prev-sun,
+.bg-thumb-oneday .od-prev-moon {
+    position: absolute;
+    left: 14%;
+    top: 12%;
+    width: 52%;
+    height: auto;
+    filter: drop-shadow(0 0 8px rgba(255, 236, 180, 0.8));
+}
+
+.bg-thumb-oneday .od-prev-moon { display: none; filter: drop-shadow(0 0 8px rgba(190, 210, 255, 0.7)); }
+[data-theme="dark"] .bg-thumb-oneday .od-prev-sun { display: none; }
+[data-theme="dark"] .bg-thumb-oneday .od-prev-moon { display: block; }
+
+.bg-thumb-oneday .od-prev-cloud {
+    position: absolute;
+    right: 6%;
+    bottom: 8%;
+    width: 62%;
+    height: auto;
+    opacity: 0.92;
+}
+
+[data-theme="dark"] .bg-thumb-oneday .od-prev-cloud { opacity: 0.35; }
+
+.bg-live {
+    position: absolute;
+    z-index: 2;
+    top: 6px;
+    right: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px 2px 5px;
+    border-radius: 999px;
+    font-size: 0.56rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1.4;
+    color: #fff;
+    background: rgba(20, 30, 60, 0.38);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35), inset 1px 1.5px 1px -1px rgba(255, 255, 255, 0.6);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+}
+
+.bg-live::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #7dffb0;
+    box-shadow: 0 0 6px #7dffb0;
+    animation: live-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes live-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .bg-live::before { animation: live-pulse 1.8s ease-in-out infinite !important; }
+}
+
+html[data-motion="reduced"] .bg-live::before { animation: none !important; }
+
+/* the selected check moves to the left so it never meets the Live chip */
+.bg-tile.is-selected .bg-thumb::before { right: auto; left: 6px; }
+
+/* keep the sun/moon clear of the Live chip */
+.bg-thumb-oneday .od-prev-sun,
+.bg-thumb-oneday .od-prev-moon { left: 9%; top: 24%; width: 40%; }
+.bg-thumb-oneday .od-prev-cloud { right: 5%; bottom: 10%; width: 56%; }
+
+/* thumbnails: the artwork sits in its own layer, lifted so the design reads at tile size */
+.bg-thumb .bg-art {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    filter: brightness(1.2) contrast(1.35) saturate(1.25);
+}
+
+[data-theme="dark"] .bg-thumb .bg-art { filter: brightness(1.7) contrast(1.4) saturate(1.3); }
+
+/* light thumbnails: lift contrast, not brightness (white would wash out) */
+html[data-theme="light"] .bg-thumb .bg-art { filter: brightness(0.93) contrast(1.7) saturate(1.7); }
+
+/* the artwork layer covers the thumb's own inset rim, so draw the rim on the overlay */
+.bg-thumb::after {
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.3),
+        inset 2px 3px 3px -2px rgba(255, 255, 255, 0.95),
+        inset -1px -2px 2px -1.5px rgba(255, 255, 255, 0.4);
+}
+
+html[data-theme="dark"] .bg-thumb::after {
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+        inset 1px 1.5px 1px -1px rgba(255, 255, 255, 0.4),
+        inset -1px -1.5px 1px -1px rgba(255, 255, 255, 0.18);
+}
+
+/* thumbnails are composed with their own contrast now: no filter boost */
+.bg-thumb .bg-art,
+html[data-theme="light"] .bg-thumb .bg-art,
+html[data-theme="dark"] .bg-thumb .bg-art { filter: none; }
+
+/* Picker tiles are glass buttons: same rim, sheen, shadow and hover as the other buttons (rim arcs rotate */
+.bg-thumb {
+    box-shadow: 0 6px 18px rgba(20, 30, 60, 0.12);
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+html[data-theme="dark"] .bg-thumb { box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4); }
+
+.bg-tile:hover .bg-thumb { transform: scale(0.975); }
+
+.bg-thumb .bg-art::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    box-sizing: border-box;
+    border-radius: inherit;
+    pointer-events: none;
+    background: conic-gradient(from var(--angle-1, -75deg) at 50% 50%,
+            rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0) 5% 40%, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 0) 60% 95%, rgba(0, 0, 0, 0.5)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    transition: --angle-1 0.5s ease;
+}
+
+html[data-theme="dark"] .bg-thumb .bg-art::after {
+    background: conic-gradient(from var(--angle-1, -75deg) at 50% 50%,
+        rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.06) 6% 38%,
+        rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0.06) 62% 94%, rgba(255, 255, 255, 0.5));
+}
+
+.bg-tile:hover .bg-thumb .bg-art::after { --angle-1: -125deg; }
+.bg-tile:active .bg-thumb .bg-art::after { --angle-1: -75deg; }
+
+/* highlight band that sweeps across on hover */
+.bg-thumb::after {
+    background: linear-gradient(-45deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.5) 40% 50%, rgba(255, 255, 255, 0) 55%);
+    background-size: 200% 200%;
+    background-position: 0% 50%;
+    background-repeat: no-repeat;
+    mix-blend-mode: screen;
+    opacity: 0.55;
+    transition: background-position 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.bg-tile:hover .bg-thumb::after { background-position: 25% 50%; }
+.bg-tile:active .bg-thumb::after { background-position: 50% 15%; }
+
+@media (prefers-reduced-motion: reduce) {
+    .bg-thumb { transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1) !important; }
+    .bg-thumb .bg-art::after { transition: --angle-1 0.5s ease !important; }
+    .bg-thumb::after { transition: background-position 0.5s cubic-bezier(0.25, 1, 0.5, 1) !important; }
+}
+
+/* One day, realistic pass: layered sky, bloom sun, textured moon, soft clouds */
+@property --sky-mid { syntax: "<color>"; inherits: true; initial-value: #8fc2f2; }
+
+#oneday-layer {
+    background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 52%, var(--sky-bot) 100%);
+    transition: --sky-top 1s linear, --sky-mid 1s linear, --sky-bot 1s linear;
+}
+
+/* the sun is light, not an object: it adds to the sky */
+#oneday-layer .od-sun { mix-blend-mode: screen; margin: calc(var(--od-size, 200px) * -0.5) 0 0 calc(var(--od-size, 200px) * -0.5); width: calc(var(--od-size, 200px) * 1); height: calc(var(--od-size, 200px) * 1); }
+
+#oneday-layer .od-moon {
+    width: calc(var(--od-size, 200px) * 0.62);
+    height: calc(var(--od-size, 200px) * 0.62);
+    margin: calc(var(--od-size, 200px) * -0.31) 0 0 calc(var(--od-size, 200px) * -0.31);
+}
+
+/* the horizon glow at dawn and dusk: warm amber into a deeper rose */
+#oneday-layer .od-glow {
+    background: radial-gradient(closest-side, hsla(30, 100%, 62%, 0.62), hsla(14, 90%, 52%, 0.3) 38%, hsla(352, 70%, 42%, 0.12) 62%, transparent 78%);
+    mix-blend-mode: screen;
+}
+
+#oneday-layer .od-cloud {
+    height: auto;
+    width: calc(var(--cs, 1) * 30vmin + 120px);
+    transform: translateX(-45vw) scaleX(var(--flip, 1));
+}
+
+@keyframes od-drift {
+    from { transform: translateX(-45vw) scaleX(var(--flip, 1)); }
+    to   { transform: translateX(118vw) scaleX(var(--flip, 1)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #oneday-layer .od-cloud { animation: od-drift var(--dur, 160s) linear var(--del, 0s) infinite !important; }
+}
+
+html[data-motion="reduced"] #oneday-layer .od-cloud { transform: translateX(20vw) scaleX(var(--flip, 1)); }
+
+/* the Rays animation from the old cartoon sun no longer exists */
+#oneday-layer .od-rays { display: none; }
+
+/* picker preview: a realistic miniature (sky, bloom, soft clouds) instead of icons */
+.bg-thumb-oneday { background: linear-gradient(180deg, #4d96e0 0%, #8cc4f2 55%, #cfe9fa 100%); }
+[data-theme="dark"] .bg-thumb-oneday { background: linear-gradient(180deg, #05081a 0%, #0a1230 55%, #16264a 100%); }
+
+.bg-thumb-oneday .od-prev-sun,
+.bg-thumb-oneday .od-prev-moon,
+.bg-thumb-oneday .od-prev-cloud { display: none !important; }
+
+.bg-thumb-oneday::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+        radial-gradient(circle at 30% 42%, #fffef6 0, #fff6cf 5%, rgba(255, 232, 160, 0.7) 12%, rgba(255, 220, 140, 0.25) 32%, transparent 62%),
+        radial-gradient(ellipse 34% 16% at 72% 70%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.35) 55%, transparent 80%),
+        radial-gradient(ellipse 22% 11% at 84% 58%, rgba(255, 255, 255, 0.75), transparent 78%);
+}
+
+[data-theme="dark"] .bg-thumb-oneday::before {
+    background:
+        radial-gradient(circle at 30% 42%, #fffdf2 0, #eef1ff 11%, rgba(190, 210, 255, 0.35) 20%, transparent 40%),
+        radial-gradient(circle 2px at 62% 22%, #fff, transparent),
+        radial-gradient(circle 1.5px at 78% 36%, #fff, transparent),
+        radial-gradient(circle 1.5px at 52% 70%, #dfe9ff, transparent),
+        radial-gradient(circle 2px at 86% 74%, #fff, transparent);
+}
+
+/* sun: strong enough to read against a bright daytime sky; moon: realistically small */
+#oneday-layer .od-sun { mix-blend-mode: normal; }
+#oneday-layer .od-sun svg { filter: saturate(1.1); }
+#oneday-layer .od-moon {
+    width: calc(var(--od-size, 200px) * 0.36);
+    height: calc(var(--od-size, 200px) * 0.36);
+    margin: calc(var(--od-size, 200px) * -0.18) 0 0 calc(var(--od-size, 200px) * -0.18);
+}
+
+#oneday-layer .od-moon svg { transform: rotate(var(--moon-rot, 0deg)); }
+
+/* realistic moon: a rendered sphere with a soft halo */
+#oneday-layer .od-moon svg { transform: none; }
+
+#oneday-layer .od-moon .od-moon-halo {
+    position: absolute;
+    inset: -70%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(214, 226, 255, 0.34), rgba(190, 210, 255, 0.1) 45%, transparent 72%);
+}
+
+#oneday-layer .od-moon .od-moon-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(var(--moon-rot, 0deg));
+}
+
+/* Light mode edge ring: the pale band under the dark arcs read as a white outline on bright backgrounds; keep a hint */
+html[data-theme="light"] .pen-btn::after {
+    background: conic-gradient(from var(--angle-1) at 50% 50%,
+            rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0) 5% 40%, rgba(0, 0, 0, 0.42) 50%, rgba(0, 0, 0, 0) 60% 95%, rgba(0, 0, 0, 0.42)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.16));
+    box-shadow: inset 0 0 0 calc(var(--border-width) / 2) rgba(255, 255, 255, 0.12);
+}
+
+/* Panel open/close is driven by the Web Animations morph in app.js (capsule <-> sheet with elliptical corner radii) */
+.settings-panel.is-open,
+.settings-panel.is-closing { animation: none !important; will-change: transform, border-radius; }
+
+.settings-panel { transform-origin: 50% 50%; }
+
+/* while open the button is replaced by the sheet */
+.settings-panel.is-open ~ .fab-wrap,
+.fab-wrap:has(+ .settings-panel.is-open) { pointer-events: none; }
+
+/* the language selector is draggable like the contrast one */
+.segmented.lang-segmented { touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer; }
+.lang-segmented a { -webkit-user-drag: none; user-drag: none; }
+
+/* Hero: text (2/3) + lanyard glass panel (1/3); lanyard on top on small screens */
+.hero-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-template-areas: "text lanyard";
+    gap: 2rem;
+    align-items: start;
+}
+
+.hero-text { grid-area: text; min-width: 0; max-width: 46rem; }
+.hero-text details { max-width: 100%; }
+
+.lanyard-panel {
+    grid-area: lanyard;
+    position: sticky;
+    top: 7rem;
+    height: min(530px, calc(100vh - 9rem));
+    min-height: 420px;
+    overflow: hidden;
+    border-radius: 22px;
+    padding: 0;
+    margin: 0;
+}
+
+.lanyard-hint {
+    position: absolute;
+    left: 0; right: 0; bottom: 1.1rem;
+    margin: 0;
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--pico-muted-color);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* The physics canvas covers the viewport so the badge can swing out of the glass panel and bounce off the screen edges; only */
+#lanyard { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 150; }
+#lanyard-hit { position: fixed; left: 0; top: 0; z-index: 151; touch-action: none; cursor: grab; background: transparent; -webkit-user-select: none; user-select: none; }
+
+@media (max-width: 860px) {
+    .hero-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas: "lanyard" "text";
+        gap: 1.5rem;
+    }
+    .lanyard-panel { position: relative; top: 0; height: 440px; min-height: 0; }
+}
+
+/* The lanyard panel is the same glass sheet as the header, footer and poem card: same fill (driven by Glass clarity) */
+html[data-theme="light"] .lanyard-panel.glass {
+    background: rgba(246, 249, 255, calc(0.42 - var(--glass-clarity) * 0.0018 + var(--glass-contrast-boost)));
+    border: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 10px 30px rgba(40, 55, 95, 0.12);
+}
+
+html[data-theme="dark"] .lanyard-panel.glass {
+    background: rgba(70, 72, 82, calc(0.34 - var(--glass-clarity) * 0.0015 + var(--glass-contrast-boost)));
+    border: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.lanyard-panel.glass::after {
+    inset: 0;
+    padding: 1px;
+    box-sizing: border-box;
+    opacity: 1;
+    box-shadow: none;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+}
+
+html[data-theme="light"] .lanyard-panel.glass::after {
+    background: radial-gradient(70% 100% at 50% 0%, rgba(25, 35, 65, 0.2), transparent 80%),
+        radial-gradient(70% 100% at 50% 100%, rgba(25, 35, 65, 0.14), transparent 80%);
+}
+
+html[data-theme="dark"] .lanyard-panel.glass::after {
+    background: radial-gradient(70% 100% at 50% 0%, rgba(255, 255, 255, 0.16), transparent 80%),
+        radial-gradient(70% 100% at 50% 100%, rgba(255, 255, 255, 0.1), transparent 80%);
+}
+
+/* the 3D lanyard canvas: same full-viewport layer as the 2D one, clipped to the glass panel in script */
+#lanyard-gl { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 150; filter: drop-shadow(0 10px 14px rgba(8, 14, 34, 0.32)); }
+
+/* "Try dragging": a quiet hint */
+.lanyard-hint { font-size: 0.74rem; letter-spacing: 0.02em; opacity: 0.6; bottom: 0.9rem; }
+
+/* ---- idle cost: no constant animation ---- */
+/* clouds are positioned by the clock (stepped in script), not an endless animation */
+#oneday-layer .od-cloud,
+html[data-motion="reduced"] #oneday-layer .od-cloud {
+    animation: none !important;
+    transform: translateX(var(--cx, 20vw)) scaleX(var(--flip, 1));
+    transition: transform var(--od-dt, 2s) linear;
+}
+
+/* the LIVE chip's pulse only runs while the settings panel is open */
+.settings-panel:not(.is-open) .bg-live::before { animation: none !important; }
+
+/* The lanyard canvases live inside the glass panel, so they scroll with it natively (no scroll-event lag on iOS) and */
+.lanyard-panel { isolation: isolate; -webkit-mask-image: -webkit-radial-gradient(white, black); }
+#lanyard,
+#lanyard-gl { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 1; filter: none; }
+#lanyard-hit { position: absolute; left: 0; top: 0; z-index: 2; touch-action: none; cursor: grab; background: transparent; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+@media (hover: hover) { #lanyard-gl { filter: drop-shadow(0 4px 6px rgba(8, 14, 34, 0.13)); } }
+
+/* Firefox / Safari (no glass lens): plain frosted glass, no fake shine. 1. */
+@supports (-moz-appearance: none) {
+    .pen-btn::after,
+    .segmented::after,
+    .segmented-indicator::after,
+    .header-fixed.glass::after,
+    footer.glass::after,
+    main details::after,
+    .settings-panel.glass::after,
+    .lanyard-panel.glass::after,
+    .bg-thumb .bg-art::after,
+    .button-shadow::after {
+        mask-composite: exclude !important;
+        -webkit-mask-composite: xor !important;
+    }
+}
+
+html.lens-fallback .pen-btn::after {
+    background: none !important;
+    -webkit-mask: none !important;
+    mask: none !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6) !important;
+}
+
+html.lens-fallback[data-theme="dark"] .pen-btn::after {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22) !important;
+}
+
+html.lens-fallback .pen-btn > span::after { display: none !important; }
+
+html.lens-fallback .pen-btn::before {
+    -webkit-backdrop-filter: blur(10px) saturate(1.25) !important;
+    backdrop-filter: blur(10px) saturate(1.25) !important;
+    box-shadow: none !important;
+}
+
+html.lens-fallback .pen-btn,
+html.lens-fallback .pen-btn:hover { box-shadow: 0 4px 14px rgba(20, 30, 60, 0.12) !important; }
+html.lens-fallback[data-theme="dark"] .pen-btn,
+html.lens-fallback[data-theme="dark"] .pen-btn:hover { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important; }
+
+/* the selector tracks and beads, picker tiles and header/footer rims: same plain edge */
+html.lens-fallback .segmented::after,
+html.lens-fallback .segmented-indicator::after,
+html.lens-fallback .bg-thumb .bg-art::after {
+    background: none !important;
+    -webkit-mask: none !important;
+    mask: none !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5) !important;
+}
+
+/* The panel must stay fully opaque and visible while it flows back into the button (its base state is opacity 0 / */
+.settings-panel.is-closing { opacity: 1 !important; visibility: visible !important; pointer-events: none; }
+
+/* iOS: a mask on the panel can swallow touches meant for the badge; plain overflow clip instead */
+.lanyard-panel { -webkit-mask-image: none; mask-image: none; }
+#lanyard-hit { -webkit-touch-callout: none; touch-action: none; -ms-touch-action: none; }
+
+/* Background change within the same theme: a soft dissolve */
+html.vt-fade::view-transition-old(root) { animation: none; mix-blend-mode: normal; }
+html.vt-fade::view-transition-new(root) {
+    -webkit-mask-image: none;
+    mask-image: none;
+    clip-path: none;
+    mix-blend-mode: normal;
+    animation: bg-dissolve 0.35s ease-out both;
+}
+@keyframes bg-dissolve { from { opacity: 0; } to { opacity: 1; } }
+
+/* "Read a poem": clear glass, as in the Fluid Glass demo. */
+html:not(.lens-fallback) main details {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    transition: background-color 0.4s ease;
+}
+
+html:not(.lens-fallback)[data-theme="light"] main details {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 10px 30px rgba(40, 55, 95, 0.1);
+}
+
+html:not(.lens-fallback)[data-theme="dark"] main details {
+    background: rgba(255, 255, 255, 0.025);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* Once the poem itself is open, the page behind it would fight the text */
+html:not(.lens-fallback)[data-theme="light"] main details.poem-open { background: rgba(250, 252, 255, 0.16); }
+html:not(.lens-fallback)[data-theme="dark"] main details.poem-open { background: rgba(24, 26, 34, 0.14); }
+
+/* "Display settings" heading: heavier. */
+.settings-panel h2 { font-weight: 800; letter-spacing: -0.01em; }
+
+/* Content-aware labels: flipped by app.js when something bright (the ID badge) sits under them. */
+.settings-panel .under-bright, .settings-panel .under-bright .setting-icon { color: #0b0e16 !important; text-shadow: 0 0 6px rgba(255, 255, 255, 0.35); transition: color 0.25s ease; }
+.settings-panel .under-dark, .settings-panel .under-dark .setting-icon { color: #f2f5fa !important; transition: color 0.25s ease; }
+.settings-panel .setting-label, .settings-panel h2, .settings-panel .bg-name { transition: color 0.25s ease; }
+
+/* "Display settings" header stays put while the options scroll beneath it. */
+.settings-panel .settings-body > h2 {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    margin: 0 -0.6rem 0.75rem;
+    padding: 0.35rem 0.6rem 0.85rem;
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    backdrop-filter: blur(14px) saturate(1.2);
+}
+
+[data-theme="light"] .settings-panel .settings-body > h2 { background: rgba(244, 247, 253, 0.9); }
+[data-theme="dark"] .settings-panel .settings-body > h2 { background: rgba(30, 32, 42, 0.82); }
+
+/* The sticky heading: a soft tinted fade behind the text instead of a hard opaque box (it looked like a flat slab on */
+.settings-panel .settings-body > h2 {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: none !important;
+    isolation: isolate;
+}
+
+.settings-panel .settings-body > h2::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -0.2rem -0.1rem -0.5rem;
+    pointer-events: none;
+    -webkit-mask-image: radial-gradient(ellipse 100% 100% at 50% 45%, #000 52%, transparent 100%);
+    mask-image: radial-gradient(ellipse 100% 100% at 50% 45%, #000 52%, transparent 100%);
+}
+
+[data-theme="light"] .settings-panel .settings-body > h2::before { background: rgba(244, 247, 253, 0.78); }
+[data-theme="dark"] .settings-panel .settings-body > h2::before { background: rgba(26, 28, 38, 0.7); }
+
+/* The active colour range, shown as a small swatch beside the "Color" label (top-left to bottom-right), not a bar */
+.hue-preview {
+    display: inline-block;
+    flex: none;
+    width: 16px;
+    height: 16px;
+    margin: 0 0 0 0.55rem;
+    border-radius: 50%;
+    vertical-align: -3px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2), inset 1px 2px 2px -1px rgba(255, 255, 255, 0.65), 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+.hue-preview.is-auto { opacity: 0.6; }
+
+/* Mobile layout: the language picker (and its caption) sit centred above the content, and a touch slimmer. */
+main .lang-row { align-items: center; text-align: center; }
+main .lang-row > small { align-self: center; }
+main .lang-row .segmented.lang-segmented { align-self: center; min-height: 36px; }
+main .lang-row .lang-segmented a { padding-top: 0.1rem; padding-bottom: 0.1rem; font-size: 0.78rem; }
+
+/* "Display settings" heading sits above the scrolling options (not inside them), so it needs no tinted backing. */
+.settings-panel > h2 { position: relative; z-index: 2; }
+.settings-panel .settings-body {
+    padding-top: 0.6rem;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 0.7rem);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 0.7rem);
+}
+
+/* Calmer selectors: the pill and its sliding bead each had a solid border AND a masked rim light, plus inner highlights */
+.segmented { border-color: transparent; box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 4px 12px rgba(20,24,34,.08); }
+[data-theme="dark"] .segmented { border-color: transparent; box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 4px 12px rgba(0,0,0,.18); }
+.segmented-indicator { border-color: transparent; box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 3px 8px rgba(0,0,0,.1); }
+[data-theme="dark"] .segmented-indicator { border-color: transparent; box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 3px 8px rgba(0,0,0,.22); }
+
+/* One look for every selector (language in the header and page, contrast in the settings panel) */
+html[data-theme="light"] .segmented {
+    background: rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 4px 12px rgba(20, 30, 60, 0.07) !important;
+}
+html[data-theme="dark"] .segmented {
+    background: rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22) !important;
+}
+html[data-theme="light"] .segmented-indicator,
+html[data-theme="light"] .segmented.is-dragging .segmented-indicator {
+    background: rgba(255, 255, 255, 0.85) !important;
+    box-shadow: 0 2px 6px rgba(20, 30, 60, 0.12) !important;
+}
+html[data-theme="dark"] .segmented-indicator,
+html[data-theme="dark"] .segmented.is-dragging .segmented-indicator {
+    background: rgba(255, 255, 255, 0.14) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+html[data-theme] .segmented::before,
+html[data-theme] .segmented-indicator::before { box-shadow: none !important; }
+
+/* The grey dashes at the top and bottom of the selectors came from the rim light: a conic gradient that is only */
+html[data-theme="light"] .segmented::after {
+    background: linear-gradient(rgba(60, 75, 110, 0.22), rgba(60, 75, 110, 0.22)) !important;
+}
+html[data-theme="light"] .segmented-indicator::after {
+    background: linear-gradient(rgba(60, 75, 110, 0.12), rgba(60, 75, 110, 0.12)) !important;
+}
+html[data-theme="dark"] .segmented::after {
+    background: linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)) !important;
+}
+html[data-theme="dark"] .segmented-indicator::after {
+    background: linear-gradient(rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.16)) !important;
+}
+
+/* The contrast selector in the settings panel had its own */
+html[data-theme="light"] .settings-panel .segmented { background: rgba(255, 255, 255, 0.5) !important; }
+html[data-theme="dark"] .settings-panel .segmented { background: rgba(255, 255, 255, 0.06) !important; }
+html[data-theme] .segmented-indicator,
+html[data-theme] .segmented.is-dragging .segmented-indicator {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+
+/* Browsers without the lens (iOS, Firefox, Safari): the selectors had a 50% white outline and white fills */
+html.lens-fallback .segmented::after,
+html.lens-fallback .segmented-indicator::after { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2) !important; }
+html.lens-fallback[data-theme="light"] .segmented::after,
+html.lens-fallback[data-theme="light"] .segmented-indicator::after { box-shadow: inset 0 0 0 1px rgba(60, 75, 110, 0.18) !important; }
+html.lens-fallback[data-theme="dark"] .segmented { background: rgba(255, 255, 255, 0.025) !important; }
+html.lens-fallback[data-theme="dark"] .segmented-indicator,
+html.lens-fallback[data-theme="dark"] .segmented.is-dragging .segmented-indicator { background: rgba(255, 255, 255, 0.07) !important; }
+html.lens-fallback[data-theme="light"] .segmented { background: rgba(255, 255, 255, 0.3) !important; }
+html.lens-fallback[data-theme="light"] .segmented-indicator { background: rgba(255, 255, 255, 0.7) !important; }
+html.lens-fallback .segmented::before { -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+
+/* (the hairline rim above is a masked gradient; without the mask, as here, it would fill the whole pill) */
+html.lens-fallback[data-theme] .segmented::after,
+html.lens-fallback[data-theme] .segmented-indicator::after { background: none !important; }
+html.lens-fallback[data-theme="dark"] .segmented-indicator,
+html.lens-fallback[data-theme="dark"] .segmented.is-dragging .segmented-indicator { background: rgba(255, 255, 255, 0.1) !important; }
